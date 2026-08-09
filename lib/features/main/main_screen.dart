@@ -16,29 +16,29 @@ class MainScreen extends StatelessWidget {
         onTap: (int idx) => _onItemTapped(idx, context),
         items: const [
           BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            activeIcon: Icon(Icons.saved_search),
+            label: 'Search',
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.chat_bubble_outline),
             activeIcon: Icon(Icons.chat_bubble),
             label: 'Chats',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.data_usage),
-            activeIcon: Icon(Icons.data_usage_rounded),
-            label: 'Status',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.lock_outline),
-            activeIcon: Icon(Icons.lock),
-            label: 'Vaults',
+            icon: Icon(Icons.ondemand_video_outlined),
+            activeIcon: Icon(Icons.ondemand_video),
+            label: 'Reels',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
             activeIcon: Icon(Icons.person),
             label: 'Profile',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            activeIcon: Icon(Icons.settings),
-            label: 'Settings',
           ),
         ],
       ),
@@ -47,30 +47,30 @@ class MainScreen extends StatelessWidget {
 
   static int _calculateSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).uri.toString();
-    if (location.startsWith('/hub')) return 0;
-    if (location.startsWith('/status')) return 1;
-    if (location.startsWith('/vaults')) return 2;
-    if (location.startsWith('/profile')) return 3;
-    if (location.startsWith('/settings')) return 4;
+    if (location.startsWith('/home')) return 0;
+    if (location.startsWith('/search')) return 1;
+    if (location.startsWith('/hub')) return 2;
+    if (location.startsWith('/reels')) return 3;
+    if (location.startsWith('/profile')) return 4;
     return 0;
   }
 
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
       case 0:
-        context.go('/hub');
+        context.go('/home');
         break;
       case 1:
-        context.go('/status');
+        context.go('/search');
         break;
       case 2:
-        context.go('/vaults');
+        context.go('/hub');
         break;
       case 3:
-        context.go('/profile');
+        context.go('/reels');
         break;
       case 4:
-        context.go('/settings');
+        context.go('/profile');
         break;
     }
   }

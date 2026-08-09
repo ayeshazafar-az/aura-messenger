@@ -9,13 +9,13 @@ import '../../core/auth_service.dart';
 import '../../core/story_service.dart';
 import '../../core/theme_provider.dart';
 
-class StatusScreen extends ConsumerStatefulWidget {
-  const StatusScreen({super.key});
+class HomeScreen extends ConsumerStatefulWidget {
+  const HomeScreen({super.key});
   @override
-  ConsumerState<StatusScreen> createState() => _StatusScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _StatusScreenState extends ConsumerState<StatusScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _uploadStory() async {
     final picker = image_picker.ImagePicker();
     final xFile = await picker.pickImage(
@@ -44,12 +44,20 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Stories',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24),
+          'Instagram Clone',
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            fontSize: 24,
+            fontFamily: 'Billabong', // Mock font
+          ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.more_horiz, color: Colors.black87),
+            icon: const Icon(Icons.favorite_border, color: Colors.black87),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.send, color: Colors.black87),
             onPressed: () {},
           ),
         ],
@@ -221,114 +229,81 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
   }
 }
 
-class VaultsScreen extends StatelessWidget {
-  const VaultsScreen({super.key});
+class SearchScreen extends StatelessWidget {
+  const SearchScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
-          'Active Vaults',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24),
-        ),
         elevation: 0,
-      ),
-      body: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            margin: const EdgeInsets.all(16),
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF8B5CF6), Color(0xFFF43F5E)],
-              ),
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFF43F5E).withOpacity(0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                ),
-              ],
+        title: Container(
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.grey.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const TextField(
+            decoration: InputDecoration(
+              hintText: 'Search',
+              prefixIcon: Icon(Icons.search, color: Colors.black54),
+              border: InputBorder.none,
             ),
-            child: const Column(
-              children: [
-                Icon(Icons.lock_clock, color: Colors.white, size: 48),
-                SizedBox(height: 12),
+          ),
+        ),
+      ),
+      body: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 2,
+          mainAxisSpacing: 2,
+        ),
+        itemCount: 30,
+        itemBuilder: (context, index) {
+          return Container(
+            color: Colors.grey.withOpacity((index % 5) * 0.1 + 0.1),
+            child: const Icon(Icons.image, color: Colors.white54),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class ReelsScreen extends StatelessWidget {
+  const ReelsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          const Center(
+            child: Icon(
+              Icons.play_circle_outline,
+              size: 80,
+              color: Colors.white54,
+            ),
+          ),
+          Positioned(
+            bottom: 20,
+            left: 10,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
                 Text(
-                  'Secure Media Vaults',
+                  '@ayesha_zafar',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
-                    fontSize: 20,
                   ),
                 ),
-                SizedBox(height: 8),
                 Text(
-                  'Media sent with a Time-Lock will appear here globally across all chats until expired.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13,
-                    height: 1.4,
-                  ),
+                  'Making a social app UI #flutter',
+                  style: TextStyle(color: Colors.white),
                 ),
               ],
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'LOCKED IN TRANSIT',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black45,
-                  letterSpacing: 1.2,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: 3,
-              itemBuilder: (context, index) {
-                return Container(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFF0F2F5)),
-                  ),
-                  child: ListTile(
-                    leading: const CircleAvatar(
-                      backgroundColor: Color(0xFFF1F5F9),
-                      child: Icon(Icons.timer, color: Color(0xFF8B5CF6)),
-                    ),
-                    title: const Text(
-                      'Hidden Photo Object',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text('Sent to User ${index + 2}'),
-                    trailing: const Text(
-                      '00:15:30',
-                      style: TextStyle(
-                        color: Colors.orange,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                );
-              },
             ),
           ),
         ],

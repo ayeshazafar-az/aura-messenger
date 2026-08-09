@@ -16,22 +16,30 @@ final routerProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         builder: (context, state, child) => MainScreen(child: child),
         routes: [
-          GoRoute(path: '/hub', builder: (context, state) => const HubScreen()),
           GoRoute(
-            path: '/status',
-            builder: (context, state) => const StatusScreen(),
+            path: '/home',
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: HomeScreen()),
           ),
           GoRoute(
-            path: '/vaults',
-            builder: (context, state) => const VaultsScreen(),
+            path: '/search',
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: SearchScreen()),
+          ),
+          GoRoute(
+            path: '/hub',
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: HubScreen()),
+          ),
+          GoRoute(
+            path: '/reels',
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: ReelsScreen()),
           ),
           GoRoute(
             path: '/profile',
-            builder: (context, state) => const ProfileScreen(),
-          ),
-          GoRoute(
-            path: '/settings',
-            builder: (context, state) => const SettingsScreen(),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: ProfileScreen()),
           ),
         ],
       ),
