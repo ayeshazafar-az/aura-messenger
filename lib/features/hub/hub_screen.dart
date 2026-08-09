@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
@@ -56,11 +57,16 @@ class HubScreen extends StatelessWidget {
                     backgroundColor: const Color(
                       0xFF8B5CF6,
                     ).withValues(alpha: 0.1),
-                    child: const Icon(
-                      Icons.person,
-                      color: Color(0xFF8B5CF6),
-                      size: 30,
-                    ),
+                    backgroundImage: user['profileBase64'] != null
+                        ? MemoryImage(base64Decode(user['profileBase64']))
+                        : null,
+                    child: user['profileBase64'] == null
+                        ? const Icon(
+                            Icons.person,
+                            color: Color(0xFF8B5CF6),
+                            size: 30,
+                          )
+                        : null,
                   ),
                   title: Text(
                     '@${user['username'] ?? user['email'].toString().split('@')[0]}',
