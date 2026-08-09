@@ -44,7 +44,13 @@ class AuthService {
     }
   }
 
-  Future<User?> signUp(String email, String password, String username) async {
+  Future<User?> signUp(
+    String email,
+    String password,
+    String username,
+    String name,
+    String phone,
+  ) async {
     try {
       // Uniqueness check for username
       final usernameCheck = await _firestore
@@ -67,6 +73,8 @@ class AuthService {
         'uid': credential.user!.uid,
         'email': email,
         'username': username,
+        'name': name,
+        'phone': phone,
       });
 
       // Send the confirmation link

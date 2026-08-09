@@ -14,10 +14,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _username = TextEditingController();
+  final _name = TextEditingController();
+  final _phone = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   bool _isLoading = false;
   bool _isSignUp = false;
+  bool _obscurePassword = true;
 
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
@@ -32,6 +35,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           _email.text.trim(),
           _password.text.trim(),
           _username.text.trim().toLowerCase(),
+          _name.text.trim(),
+          _phone.text.trim(),
         );
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -45,7 +50,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           );
           setState(() {
             _isSignUp = false;
-            _password.clear(); // Safe practice
+            _password.clear();
           });
         }
       } else {
@@ -86,6 +91,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  String? _validateName(String? value) {
+    if (!_isSignUp) return null;
+    if (value == null || value.trim().isEmpty) return 'Full name is required';
+    return null;
+  }
+
+  String? _validatePhone(String? value) {
+    if (!_isSignUp) return null;
+    if (value == null || value.trim().isEmpty)
+      return 'Phone number is required';
+    if (!RegExp(r'^\+?[0-9]{10,15}$').hasMatch(value.replaceAll(' ', ''))) {
+      return 'Enter a valid phone number';
+    }
+    return null;
+  }
+
   String? _validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) return 'Email is required';
     final regex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
@@ -94,7 +115,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   String? _validateUsername(String? value) {
-    if (!_isSignUp) return null; // No need to validate if just logging in
+    if (!_isSignUp) return null;
     if (value == null || value.trim().length < 3)
       return 'Username must be at least 3 characters';
     if (value.contains(' ')) return 'Username cannot contain spaces';
@@ -144,8 +165,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   'The Context-Aware Messenger',
                   style: TextStyle(color: Colors.grey),
                 ),
-                const SizedBox(height: 64),
+                const SizedBox(height: 48),
                 if (_isSignUp) ...[
+                  TextFormField(
+                    controller: _name,
+                    textCapitalization: TextCapitalization.words,
+                    keyboardType: TextInputType.name,
+                    decoration: const InputDecoration(
+                      labelText: 'Full Name',
+                      prefixIcon: Icon(Icons.person_outline),
+                    ),
+                    validator: _validateName,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _phone,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(
+                      labelText: 'Phone Number',
+                      prefixIcon: Icon(Icons.phone),
+                    ),
+                    validator: _validatePhone,
+                  ),
+                  const SizedBox(height: 16),
                   TextFormField(
                     controller: _username,
                     keyboardType: TextInputType.text,
@@ -169,10 +211,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _password,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
                     labelText: 'Password',
-                    prefixIcon: Icon(Icons.lock),
+                    prefixIcon: const Icon(Icons.lock),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
+                    ),
                   ),
                   validator: _validatePassword,
                 ),
