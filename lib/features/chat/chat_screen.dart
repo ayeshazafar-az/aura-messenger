@@ -127,27 +127,31 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color: isMe
-              ? Theme.of(context).primaryColor
-              : Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(16).copyWith(
+          color: isLocked
+              ? const Color(0xFF1E1E1E)
+              : isMe
+              ? const Color(0xFF007AFF) // iMessage Blue
+              : const Color(0xFFE5E5EA), // Soft Grey
+          borderRadius: BorderRadius.circular(20).copyWith(
             bottomRight: isMe
-                ? const Radius.circular(0)
-                : const Radius.circular(16),
+                ? const Radius.circular(4)
+                : const Radius.circular(20),
             bottomLeft: isMe
-                ? const Radius.circular(16)
-                : const Radius.circular(0),
+                ? const Radius.circular(20)
+                : const Radius.circular(4),
           ),
-          border: isLocked ? Border.all(color: Colors.amber, width: 2) : null,
+          border: isLocked
+              ? Border.all(color: Colors.amberAccent, width: 1.5)
+              : null,
           boxShadow: isLocked
               ? [
                   BoxShadow(
-                    color: Colors.amber.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    spreadRadius: 2,
+                    color: Colors.amber.withValues(alpha: 0.2),
+                    blurRadius: 10,
+                    spreadRadius: 1,
                   ),
                 ]
               : [],
@@ -158,9 +162,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 data['message'] ?? '',
                 style: TextStyle(
                   fontSize: 16,
-                  color: isMe
-                      ? Colors.white
-                      : Theme.of(context).colorScheme.onSurface,
+                  color: isMe ? Colors.white : Colors.black87,
                 ),
               ),
       ),
@@ -225,27 +227,61 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               },
             ),
           ),
-          Padding(
+          Container(
             padding: const EdgeInsets.all(12.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Type a message...',
+            decoration: const BoxDecoration(color: Colors.white),
+            child: SafeArea(
+              // iOS padding support
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      decoration: InputDecoration(
+                        hintText: 'iMessage',
+                        filled: true,
+                        fillColor: const Color(0xFFFAFAFA),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE5E5EA),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE5E5EA),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF007AFF),
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                CircleAvatar(
-                  backgroundColor: Colors.blueAccent,
-                  child: IconButton(
-                    icon: const Icon(Icons.send, color: Colors.white),
-                    onPressed: _sendMessage,
+                  const SizedBox(width: 12),
+                  GestureDetector(
+                    onTap: _sendMessage,
+                    child: const CircleAvatar(
+                      radius: 20,
+                      backgroundColor: Color(0xFF007AFF),
+                      child: Icon(
+                        Icons.arrow_upward,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
