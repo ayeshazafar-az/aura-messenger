@@ -37,6 +37,14 @@ class ThemeNotifier extends Notifier<ThemeData> {
       secondary: const Color(0xFFF43F5E), // Rose Accent
       primary: const Color(0xFF8B5CF6),
     ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: Colors.white,
+      selectedItemColor: Color(0xFF8B5CF6),
+      unselectedItemColor: Color(0xFFB0BEC5),
+      showUnselectedLabels: true,
+      elevation: 16,
+      type: BottomNavigationBarType.fixed,
+    ),
     fontFamily: 'Inter', // Assuming Google Fonts fallback visually
   );
 
@@ -64,6 +72,14 @@ class ThemeNotifier extends Notifier<ThemeData> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         padding: const EdgeInsets.symmetric(vertical: 16),
       ),
+    ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: Color(0xFF1E1E1E),
+      selectedItemColor: Color(0xFF8B5CF6),
+      unselectedItemColor: Colors.white54,
+      showUnselectedLabels: true,
+      elevation: 16,
+      type: BottomNavigationBarType.fixed,
     ),
   );
 
