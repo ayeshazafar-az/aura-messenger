@@ -12,9 +12,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(path: '/hub', builder: (context, state) => const HubScreen()),
       GoRoute(
-        path: '/chat/:name',
-        builder: (context, state) =>
-            ChatScreen(friendName: state.pathParameters['name'] ?? 'Friend'),
+        path: '/chat/:uid',
+        builder: (context, state) {
+          final uid = state.pathParameters['uid']!;
+          final name = state.uri.queryParameters['name'] ?? 'Friend';
+          return ChatScreen(receiverId: uid, receiverName: name);
+        },
       ),
     ],
   );
