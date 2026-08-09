@@ -118,4 +118,16 @@ class ChatService {
       'status': 'accepted',
     }, SetOptions(merge: true));
   }
+
+  Future<void> deleteEntireChat(String userId1, String userId2) async {
+    final String chatRoomId = _getChatRoomId(userId1, userId2);
+    final roomDoc = _firestore.collection('chat_rooms').doc(chatRoomId);
+
+    final messages = await roomDoc.collection('messages').get();
+    for (var doc in messages.docs) {
+      await doc.reference.delete();
+    }
+
+    await roomDoc.delete();
+  }
 }

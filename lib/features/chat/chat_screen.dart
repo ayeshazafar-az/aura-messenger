@@ -716,6 +716,35 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
+  void _confirmDeleteChat(String currentUserId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Chat?'),
+        content: const Text(
+          'This will permanently delete all messages in this conversation for both of you.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () async {
+              Navigator.pop(context);
+              Navigator.pop(context);
+              await ref
+                  .read(chatServiceProvider)
+                  .deleteEntireChat(currentUserId, widget.receiverId);
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUser = ref.watch(authServiceProvider).currentUser;
@@ -743,6 +772,26 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     MockCallScreen(isVideo: true, name: widget.receiverName),
               ),
             ),
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Color(0xFF8B5CF6)),
+            onSelected: (val) {
+              if (val == 'delete') {
+                _confirmDeleteChat(currentUser!.uid);
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'delete',
+                child: Text(
+                  'Delete Chat',
+                  style: TextStyle(
+                    color: Colors.redAccent,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(width: 8),
         ],
