@@ -9,30 +9,249 @@ import '../../core/auth_service.dart';
 
 class StatusScreen extends StatelessWidget {
   const StatusScreen({super.key});
+
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Status')),
-    body: const Center(
-      child: Text(
-        'Status & Stories (Coming Soon)',
-        style: TextStyle(color: Colors.grey),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text(
+          'Stories',
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.more_horiz, color: Colors.black87),
+            onPressed: () {},
+          ),
+        ],
       ),
-    ),
-  );
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Stack(
+                  children: [
+                    const CircleAvatar(
+                      radius: 28,
+                      backgroundColor: Color(0xFFF1F5F9),
+                      child: Icon(
+                        Icons.person,
+                        color: Color(0xFF8B5CF6),
+                        size: 30,
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF8B5CF6),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(
+                          Icons.add,
+                          color: Colors.white,
+                          size: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                title: const Text(
+                  'My Story',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                subtitle: const Text(
+                  'Tap to add a story update',
+                  style: TextStyle(color: Colors.black54),
+                ),
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.only(left: 16, top: 16, bottom: 8),
+              child: Text(
+                'Recent Updates',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black54,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ),
+          SliverList(
+            delegate: SliverChildBuilderDelegate((context, index) {
+              return ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
+                leading: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF8B5CF6), Color(0xFFF43F5E)],
+                    ),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                    ),
+                    child: CircleAvatar(
+                      radius: 22,
+                      backgroundColor: const Color(0xFFF1F5F9),
+                      child: Icon(
+                        Icons.person_outline,
+                        color: const Color(0xFF8B5CF6).withOpacity(0.5),
+                      ),
+                    ),
+                  ),
+                ),
+                title: Text(
+                  'User ${index + 1}',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                subtitle: Text(
+                  '${index * 10 + 5} minutes ago',
+                  style: const TextStyle(color: Colors.black54),
+                ),
+              );
+            }, childCount: 8),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class VaultsScreen extends StatelessWidget {
   const VaultsScreen({super.key});
+
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('My Vaults')),
-    body: const Center(
-      child: Text(
-        'Active Locked Vaults (Coming Soon)',
-        style: TextStyle(color: Colors.grey),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text(
+          'Active Vaults',
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
       ),
-    ),
-  );
+      body: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF8B5CF6), Color(0xFFF43F5E)],
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFF43F5E).withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: const Column(
+              children: [
+                Icon(Icons.lock_clock, color: Colors.white, size: 48),
+                SizedBox(height: 12),
+                Text(
+                  'Secure Media Vaults',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Media sent with a Time-Lock will appear here globally across all chats until expired.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 13,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'LOCKED IN TRANSIT',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black45,
+                  letterSpacing: 1.2,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: 3,
+              itemBuilder: (context, index) {
+                return Container(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFF0F2F5)),
+                  ),
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      backgroundColor: Color(0xFFF1F5F9),
+                      child: Icon(Icons.timer, color: Color(0xFF8B5CF6)),
+                    ),
+                    title: const Text(
+                      'Hidden Photo Object',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text('Sent to User ${index + 2}'),
+                    trailing: const Text(
+                      '00:15:30',
+                      style: TextStyle(
+                        color: Colors.orange,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -315,7 +534,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           children: [
                             const Text(
                               'Username',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.black54,
                               ),
