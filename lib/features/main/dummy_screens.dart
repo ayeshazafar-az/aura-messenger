@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart' as image_picker;
 import '../../core/auth_service.dart';
 import '../../core/story_service.dart';
+import '../../core/post_service.dart';
 import '../../core/theme_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -39,6 +40,92 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         .uploadStory(currentUserId, File(xFile.path), 'My story via Aura');
   }
 
+  Future<void> _uploadPost() async {
+    final picker = image_picker.ImagePicker();
+    final xFile = await picker.pickImage(
+      source: image_picker.ImageSource.gallery,
+      imageQuality: 50,
+    );
+    if (xFile == null) return;
+
+    final user = ref.read(authServiceProvider).currentUser;
+    if (user != null) {
+      await ref
+          .read(postServiceProvider)
+          .uploadPost(user.uid, File(xFile.path), 'Just sharing some vibes ✨');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Post uploaded successfully 📸'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildPostCard(Map<String, dynamic> post) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ListTile(
+          leading: CircleAvatar(
+            backgroundColor: theme.primaryColor.withOpacity(0.1),
+            child: Icon(Icons.person, color: theme.primaryColor),
+          ),
+          title: Text(
+            post['uploaderId'].toString().substring(0, 5),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          trailing: const Icon(Icons.more_vert),
+        ),
+        Image.memory(
+          base64Decode(post['imageBase64']),
+          width: double.infinity,
+          fit: BoxFit.cover,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: const [
+              Icon(Icons.favorite_border, size: 28),
+              SizedBox(width: 16),
+              Icon(Icons.chat_bubble_outline, size: 26),
+              SizedBox(width: 16),
+              Icon(Icons.send, size: 26),
+              Spacer(),
+              Icon(Icons.bookmark_border, size: 28),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            '${post['likes'] ?? 0} likes',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          child: RichText(
+            text: TextSpan(
+              style: TextStyle(color: theme.textTheme.bodyMedium?.color),
+              children: [
+                TextSpan(
+                  text: '${post['uploaderId'].toString().substring(0, 5)} ',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                TextSpan(text: post['caption'] ?? ''),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,6 +135,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.add_box_outlined, color: Colors.black87),
+            onPressed: _uploadPost,
+          ),
           IconButton(
             icon: const Icon(Icons.favorite_border, color: Colors.black87),
             onPressed: () {},
@@ -218,6 +309,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 }, childCount: stories.length),
               );
             },
+          ),
+          SliverToBoxAdapter(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: ref.watch(postServiceProvider).getFeedPosts(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) return const SizedBox.shrink();
+                final posts = snapshot.data!.docs;
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: posts.length,
+                  itemBuilder: (context, index) {
+                    final post = posts[index].data() as Map<String, dynamic>;
+                    return _buildPostCard(post);
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
