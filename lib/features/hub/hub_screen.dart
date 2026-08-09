@@ -37,7 +37,7 @@ class HubScreen extends StatelessWidget {
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
@@ -54,16 +54,16 @@ class HubScreen extends StatelessWidget {
                   ),
                   leading: CircleAvatar(
                     radius: 28,
-                    backgroundColor: const Color(
-                      0xFF8B5CF6,
-                    ).withValues(alpha: 0.1),
+                    backgroundColor: Theme.of(
+                      context,
+                    ).primaryColor.withValues(alpha: 0.1),
                     backgroundImage: user['profileBase64'] != null
                         ? MemoryImage(base64Decode(user['profileBase64']))
                         : null,
                     child: user['profileBase64'] == null
-                        ? const Icon(
+                        ? Icon(
                             Icons.person,
-                            color: Color(0xFF8B5CF6),
+                            color: Theme.of(context).primaryColor,
                             size: 30,
                           )
                         : null,
@@ -87,14 +87,14 @@ class HubScreen extends StatelessWidget {
                   trailing: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF0F2F5),
+                      color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
                       isPrivate ? Icons.lock : Icons.chat_bubble_rounded,
                       color: isPrivate
                           ? Colors.redAccent
-                          : const Color(0xFF8B5CF6),
+                          : Theme.of(context).primaryColor,
                       size: 20,
                     ),
                   ),
