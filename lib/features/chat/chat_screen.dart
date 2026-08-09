@@ -208,6 +208,117 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
+  Widget _buildInputArea(DocumentSnapshot? roomDoc, String currentUserId) {
+    if (roomDoc != null && roomDoc.exists) {
+      final data = roomDoc.data() as Map<String, dynamic>;
+
+      // If status is requested, and YOU did not initiate the request (meaning you are the receiver)
+      if (data['status'] == 'requested' && data['initiator'] != currentUserId) {
+        return Container(
+          padding: const EdgeInsets.all(16.0),
+          width: double.infinity,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(top: BorderSide(color: Color(0xFFF0F2F5))),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Message Request',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'This user wants to connect. Sending a reply will allow them to call you and see information like your Activity Status.',
+                  style: TextStyle(color: Colors.black54, fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.redAccent),
+                        ),
+                        child: const Text(
+                          'Block',
+                          style: TextStyle(color: Colors.redAccent),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => ref
+                            .read(chatServiceProvider)
+                            .acceptRequest(currentUserId, widget.receiverId),
+                        child: const Text('Accept'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+    }
+
+    // Normal Input
+    return Container(
+      padding: const EdgeInsets.all(12.0),
+      decoration: const BoxDecoration(color: Colors.white),
+      child: SafeArea(
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                decoration: InputDecoration(
+                  hintText: 'iMessage',
+                  filled: true,
+                  fillColor: const Color(0xFFFAFAFA),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF007AFF),
+                      width: 1.5,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            GestureDetector(
+              onTap: _sendMessage,
+              child: const CircleAvatar(
+                radius: 20,
+                backgroundColor: Color(0xFF007AFF),
+                child: Icon(Icons.arrow_upward, color: Colors.white, size: 20),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUser = ref.watch(authServiceProvider).currentUser;
@@ -242,62 +353,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               },
             ),
           ),
-          Container(
-            padding: const EdgeInsets.all(12.0),
-            decoration: const BoxDecoration(color: Colors.white),
-            child: SafeArea(
-              // iOS padding support
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      decoration: InputDecoration(
-                        hintText: 'iMessage',
-                        filled: true,
-                        fillColor: const Color(0xFFFAFAFA),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFE5E5EA),
-                          ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFE5E5EA),
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: const BorderSide(
-                            color: Color(0xFF007AFF),
-                            width: 1.5,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap: _sendMessage,
-                    child: const CircleAvatar(
-                      radius: 20,
-                      backgroundColor: Color(0xFF007AFF),
-                      child: Icon(
-                        Icons.arrow_upward,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+
+          StreamBuilder<DocumentSnapshot>(
+            stream: ref
+                .watch(chatServiceProvider)
+                .getRoomStatus(currentUser!.uid, widget.receiverId),
+            builder: (context, snapshot) {
+              return _buildInputArea(snapshot.data, currentUser.uid);
+            },
           ),
         ],
       ),

@@ -93,21 +93,21 @@ class HubScreen extends StatelessWidget {
                     ),
                   ),
                   onTap: () {
+                    final name =
+                        user['username'] ??
+                        user['email'].toString().split('@')[0];
                     if (isPrivate) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text(
-                            'This account is private and does not accept direct messages.',
+                            'Private Account: Your first message will be sent as a Request.',
                           ),
-                          backgroundColor: Colors.redAccent,
+                          backgroundColor: Color(0xFF0084FF),
+                          duration: Duration(seconds: 3),
                         ),
                       );
-                    } else {
-                      final name =
-                          user['username'] ??
-                          user['email'].toString().split('@')[0];
-                      context.push('/chat/${user['uid']}?name=$name');
                     }
+                    context.push('/chat/${user['uid']}?name=$name');
                   },
                 ),
               );
