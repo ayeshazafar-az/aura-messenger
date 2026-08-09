@@ -40,14 +40,17 @@ class AuthService {
     }
   }
 
+  bool _isGoogleInitialized = false;
+
   Future<User?> signInWithGoogle() async {
     try {
-      final googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) return null; // Check if user aborted the dialog
-
-      final googleAuth = await googleUser.authentication;
+      if (!_isGoogleInitialized) {
+        await GoogleSignIn.instance.initialize();
+        _isGoogleInitialized = true;
+      }
+      final googleUser = await GoogleSignIn.instance.authenticate();
+      final googleAuth = googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
