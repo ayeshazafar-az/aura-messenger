@@ -48,26 +48,63 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final chatService = ref.read(chatServiceProvider);
 
     DateTime? selectedTime;
-    final lock = await showDialog<bool>(
+
+    final result = await showDialog<int>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Send Time-Locked Vault?'),
-        content: const Text('Do you want to lock this message for 15 seconds?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('No'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Yes'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        int tempSeconds = 15;
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Send Time-Locked Vault?'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Select how long this message will remain locked:',
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButton<int>(
+                    value: tempSeconds,
+                    isExpanded: true,
+                    items: const [
+                      DropdownMenuItem(value: 5, child: Text('5 Seconds')),
+                      DropdownMenuItem(value: 15, child: Text('15 Seconds')),
+                      DropdownMenuItem(value: 30, child: Text('30 Seconds')),
+                      DropdownMenuItem(value: 60, child: Text('1 Minute')),
+                      DropdownMenuItem(value: 300, child: Text('5 Minutes')),
+                      DropdownMenuItem(value: 3600, child: Text('1 Hour')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) setState(() => tempSeconds = val);
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, -1),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, 0),
+                  child: const Text('Send Normally'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context, tempSeconds),
+                  child: const Text('Lock & Send'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
 
-    if (lock == true) {
-      selectedTime = DateTime.now().add(const Duration(seconds: 15));
+    if (result == null || result == -1) return;
+
+    if (result > 0) {
+      selectedTime = DateTime.now().add(Duration(seconds: result));
     }
 
     await chatService.sendMessage(
@@ -108,7 +145,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           boxShadow: isLocked
               ? [
                   BoxShadow(
-                    color: Colors.amber.withOpacity(0.3),
+                    color: Colors.amber.withValues(alpha: 0.3),
                     blurRadius: 8,
                     spreadRadius: 2,
                   ),
