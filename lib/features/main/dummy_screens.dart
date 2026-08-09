@@ -6,21 +6,46 @@ import 'package:go_router/go_router.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart' as image_picker;
 import '../../core/auth_service.dart';
+import '../../core/story_service.dart';
 
-class StatusScreen extends StatelessWidget {
+class StatusScreen extends ConsumerStatefulWidget {
   const StatusScreen({super.key});
+  @override
+  ConsumerState<StatusScreen> createState() => _StatusScreenState();
+}
+
+class _StatusScreenState extends ConsumerState<StatusScreen> {
+  Future<void> _uploadStory() async {
+    final picker = image_picker.ImagePicker();
+    final xFile = await picker.pickImage(
+      source: image_picker.ImageSource.gallery,
+      imageQuality: 50,
+      maxWidth: 800,
+      maxHeight: 800,
+    );
+    if (xFile == null) return;
+
+    final currentUserId = ref.read(authServiceProvider).currentUser!.uid;
+
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Uploading Story...')));
+    }
+
+    await ref
+        .read(storyServiceProvider)
+        .uploadStory(currentUserId, File(xFile.path), 'My story via Aura');
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           'Stories',
           style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24),
         ),
-        backgroundColor: Colors.white,
-        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.more_horiz, color: Colors.black87),
@@ -34,6 +59,7 @@ class StatusScreen extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: ListTile(
+                onTap: _uploadStory,
                 contentPadding: EdgeInsets.zero,
                 leading: Stack(
                   children: [
@@ -89,47 +115,104 @@ class StatusScreen extends StatelessWidget {
               ),
             ),
           ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate((context, index) {
-              return ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 4,
-                ),
-                leading: Container(
-                  padding: const EdgeInsets.all(3),
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF8B5CF6), Color(0xFFF43F5E)],
-                    ),
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                    ),
-                    child: CircleAvatar(
-                      radius: 22,
-                      backgroundColor: const Color(0xFFF1F5F9),
-                      child: Icon(
-                        Icons.person_outline,
-                        color: const Color(0xFF8B5CF6).withOpacity(0.5),
+          StreamBuilder<QuerySnapshot>(
+            stream: ref.watch(storyServiceProvider).getActiveStories(),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return const SliverToBoxAdapter(
+                  child: Center(child: Text('Error loading stories')),
+                );
+              }
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SliverToBoxAdapter(
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              final stories = snapshot.data!.docs;
+
+              if (stories.isEmpty) {
+                return const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Center(
+                      child: Text(
+                        'No recent updates.',
+                        style: TextStyle(color: Colors.black54),
                       ),
                     ),
                   ),
-                ),
-                title: Text(
-                  'User ${index + 1}',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                subtitle: Text(
-                  '${index * 10 + 5} minutes ago',
-                  style: const TextStyle(color: Colors.black54),
-                ),
+                );
+              }
+
+              return SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final data = stories[index].data() as Map<String, dynamic>;
+
+                  return ListTile(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => Scaffold(
+                          backgroundColor: Colors.black,
+                          appBar: AppBar(
+                            backgroundColor: Colors.black,
+                            title: const Text(
+                              'Viewing Story',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            iconTheme: const IconThemeData(color: Colors.white),
+                          ),
+                          body: Center(
+                            child: Image.memory(
+                              base64Decode(data['imageBase64']),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
+                    leading: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF8B5CF6), Color(0xFFF43F5E)],
+                        ),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                        ),
+                        child: CircleAvatar(
+                          radius: 22,
+                          backgroundColor: const Color(0xFFF1F5F9),
+                          backgroundImage: MemoryImage(
+                            base64Decode(data['imageBase64']),
+                          ),
+                        ),
+                      ),
+                    ),
+                    title: Text(
+                      data['uploaderId'].toString().substring(0, 5),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ),
+                    subtitle: const Text(
+                      'Recently',
+                      style: TextStyle(color: Colors.black54),
+                    ),
+                  );
+                }, childCount: stories.length),
               );
-            }, childCount: 8),
+            },
           ),
         ],
       ),
@@ -803,8 +886,18 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
   }
 }
 
-class AppearanceSettingsScreen extends StatelessWidget {
+class AppearanceSettingsScreen extends ConsumerStatefulWidget {
   const AppearanceSettingsScreen({super.key});
+  @override
+  ConsumerState<AppearanceSettingsScreen> createState() =>
+      _AppearanceSettingsScreenState();
+}
+
+class _AppearanceSettingsScreenState
+    extends ConsumerState<AppearanceSettingsScreen> {
+  int _themeMode = 1;
+  int _accentColor = 1;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -812,54 +905,95 @@ class AppearanceSettingsScreen extends StatelessWidget {
       body: ListView(
         children: [
           RadioListTile(
-            title: const Text('System Default'),
-            value: 1,
-            groupValue: 1,
-            onChanged: (v) {},
-            activeColor: const Color(0xFF8B5CF6),
-          ),
-          RadioListTile(
             title: const Text('Light Mode'),
-            value: 2,
-            groupValue: 1,
-            onChanged: (v) {},
-            activeColor: const Color(0xFF8B5CF6),
+            value: 1,
+            groupValue: _themeMode,
+            onChanged: (v) {
+              setState(() => _themeMode = 1);
+              ref.read(themeProvider.notifier).setLightMode();
+            },
+            activeColor: Theme.of(context).primaryColor,
           ),
           RadioListTile(
             title: const Text('Dark Mode'),
-            value: 3,
-            groupValue: 1,
-            onChanged: (v) {},
-            activeColor: const Color(0xFF8B5CF6),
+            value: 2,
+            groupValue: _themeMode,
+            onChanged: (v) {
+              setState(() => _themeMode = 2);
+              ref.read(themeProvider.notifier).setDarkMode();
+            },
+            activeColor: Theme.of(context).primaryColor,
           ),
           const Divider(),
-          const Padding(
-            padding: EdgeInsets.all(16),
+          Padding(
+            padding: const EdgeInsets.all(16),
             child: Text(
               'Accent Color',
               style: TextStyle(
-                color: Color(0xFF8B5CF6),
+                color: Theme.of(context).primaryColor,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
-          const ListTile(
-            leading: CircleAvatar(
+          ListTile(
+            leading: const CircleAvatar(
               backgroundColor: Color(0xFF8B5CF6),
               radius: 12,
             ),
-            title: Text('Aura Violet (Default)'),
+            title: const Text('Aura Violet (Default)'),
+            trailing: _accentColor == 1
+                ? const Icon(Icons.check, color: Color(0xFF8B5CF6))
+                : null,
+            onTap: () {
+              setState(() => _accentColor = 1);
+              ref
+                  .read(themeProvider.notifier)
+                  .setCustomTheme(
+                    const Color(0xFF8B5CF6),
+                    const Color(0xFFF43F5E),
+                    _themeMode == 2,
+                  );
+            },
           ),
-          const ListTile(
-            leading: CircleAvatar(
+          ListTile(
+            leading: const CircleAvatar(
               backgroundColor: Color(0xFFF43F5E),
               radius: 12,
             ),
-            title: Text('Rose Pink'),
+            title: const Text('Rose Pink'),
+            trailing: _accentColor == 2
+                ? const Icon(Icons.check, color: Color(0xFFF43F5E))
+                : null,
+            onTap: () {
+              setState(() => _accentColor = 2);
+              ref
+                  .read(themeProvider.notifier)
+                  .setCustomTheme(
+                    const Color(0xFFF43F5E),
+                    const Color(0xFF8B5CF6),
+                    _themeMode == 2,
+                  );
+            },
           ),
-          const ListTile(
-            leading: CircleAvatar(backgroundColor: Colors.black, radius: 12),
-            title: Text('True Black (Premium)'),
+          ListTile(
+            leading: const CircleAvatar(
+              backgroundColor: Colors.teal,
+              radius: 12,
+            ),
+            title: const Text('Emerald Teal'),
+            trailing: _accentColor == 3
+                ? const Icon(Icons.check, color: Colors.teal)
+                : null,
+            onTap: () {
+              setState(() => _accentColor = 3);
+              ref
+                  .read(themeProvider.notifier)
+                  .setCustomTheme(
+                    Colors.teal,
+                    Colors.tealAccent,
+                    _themeMode == 2,
+                  );
+            },
           ),
         ],
       ),
