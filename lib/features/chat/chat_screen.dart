@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -121,7 +122,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   void _sendImage() async {
     final picker = ImagePicker();
-    final xFile = await picker.pickImage(source: ImageSource.gallery);
+    // Aggressive compression to fit inside Firestore 1MB document limit
+    final xFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 50,
+      maxWidth: 800,
+      maxHeight: 800,
+    );
     if (xFile == null) return; // User closed picker
 
     final result = await _promptTimeLock();
@@ -161,7 +168,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-        padding: data['imageUrl'] != null && !isLocked
+        padding: data['imageBase64'] != null && !isLocked
             ? const EdgeInsets.all(4)
             : const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
@@ -208,21 +215,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ),
         child: isLocked
             ? _buildLockedVault(unlockTime!)
-            : data['imageUrl'] != null
-            // Display native dynamic image
+            : data['imageBase64'] != null
+            // Display native dynamic image from Base64
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(18),
-                child: Image.network(
-                  data['imageUrl'],
+                child: Image.memory(
+                  base64Decode(data['imageBase64']),
                   width: 250,
                   fit: BoxFit.cover,
-                  loadingBuilder: (context, child, progress) {
-                    if (progress == null) return child;
-                    return const Padding(
-                      padding: EdgeInsets.all(32.0),
-                      child: CircularProgressIndicator(color: Colors.white),
-                    );
-                  },
                 ),
               )
             // Display plain text

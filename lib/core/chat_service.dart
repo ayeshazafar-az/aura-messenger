@@ -1,13 +1,12 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final chatServiceProvider = Provider<ChatService>((ref) => ChatService());
 
 class ChatService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   String _getChatRoomId(String userId1, String userId2) {
     List<String> ids = [userId1, userId2];
@@ -60,16 +59,9 @@ class ChatService {
   ) async {
     final String chatRoomId = _getChatRoomId(senderId, receiverId);
 
-    // 1. Upload Image to Firebase Storage securely
-    final String fileName =
-        DateTime.now().millisecondsSinceEpoch.toString() + '.jpg';
-    final ref = _storage
-        .ref()
-        .child('chat_images')
-        .child(chatRoomId)
-        .child(fileName);
-    await ref.putFile(imageFile);
-    final String imageUrl = await ref.getDownloadURL();
+    // 1. Convert to Base64 String (Bypassing Firebase Storage entirely)
+    final bytes = await imageFile.readAsBytes();
+    final String base64Image = base64Encode(bytes);
 
     // 2. Setup room if new (metadata injection check)
     final roomDoc = _firestore.collection('chat_rooms').doc(chatRoomId);
@@ -87,11 +79,11 @@ class ChatService {
       });
     }
 
-    // 3. Save Message explicitly containing imageUrl
+    // 3. Save Message explicitly containing base64 encoded string
     final newMessage = {
       'senderId': senderId,
       'receiverId': receiverId,
-      'imageUrl': imageUrl,
+      'imageBase64': base64Image,
       'timestamp': FieldValue.serverTimestamp(),
       'unlockTime': unlockTime?.millisecondsSinceEpoch,
     };
