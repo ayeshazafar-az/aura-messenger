@@ -53,7 +53,9 @@ class HubScreen extends ConsumerWidget {
                   backgroundColor: Color(0xFF3B82F6),
                   child: Icon(Icons.person, color: Colors.white),
                 ),
-                title: Text(user['email'].toString().split('@')[0]),
+                title: Text(
+                  '@${user['username'] ?? user['email'].toString().split('@')[0]}',
+                ),
                 subtitle: const Text('Tap to start encrypted chat...'),
                 trailing: const Icon(
                   Icons.lock_clock,

@@ -44,8 +44,20 @@ class AuthService {
     }
   }
 
-  Future<User?> signUp(String email, String password) async {
+  Future<User?> signUp(String email, String password, String username) async {
     try {
+      // Uniqueness check for username
+      final usernameCheck = await _firestore
+          .collection('users')
+          .where('username', isEqualTo: username)
+          .get();
+
+      if (usernameCheck.docs.isNotEmpty) {
+        throw Exception(
+          'Username "@$username" is already taken. Please choose a different one.',
+        );
+      }
+
       final credential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -54,6 +66,7 @@ class AuthService {
       await _firestore.collection('users').doc(credential.user!.uid).set({
         'uid': credential.user!.uid,
         'email': email,
+        'username': username,
       });
 
       // Send the confirmation link
@@ -91,10 +104,19 @@ class AuthService {
       final user = userCredential.user;
 
       if (user != null) {
-        await _firestore.collection('users').doc(user.uid).set({
-          'uid': user.uid,
-          'email': user.email,
-        }, SetOptions(merge: true));
+        // Only set base username if they are entirely new
+        final userDoc = await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        if (!userDoc.exists) {
+          final baseUsername = user.email!.split('@')[0];
+          await _firestore.collection('users').doc(user.uid).set({
+            'uid': user.uid,
+            'email': user.email,
+            'username': baseUsername,
+          }, SetOptions(merge: true));
+        }
       }
 
       return user;

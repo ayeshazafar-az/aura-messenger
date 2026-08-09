@@ -13,6 +13,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _username = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   bool _isLoading = false;
@@ -27,7 +28,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final authService = ref.read(authServiceProvider);
 
       if (_isSignUp) {
-        await authService.signUp(_email.text.trim(), _password.text.trim());
+        await authService.signUp(
+          _email.text.trim(),
+          _password.text.trim(),
+          _username.text.trim().toLowerCase(),
+        );
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -38,7 +43,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               duration: Duration(seconds: 5),
             ),
           );
-          setState(() => _isSignUp = false);
+          setState(() {
+            _isSignUp = false;
+            _password.clear(); // Safe practice
+          });
         }
       } else {
         await authService.login(_email.text.trim(), _password.text.trim());
@@ -85,9 +93,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return null;
   }
 
+  String? _validateUsername(String? value) {
+    if (!_isSignUp) return null; // No need to validate if just logging in
+    if (value == null || value.trim().length < 3)
+      return 'Username must be at least 3 characters';
+    if (value.contains(' ')) return 'Username cannot contain spaces';
+    final RegExp validChars = RegExp(r'^[a-zA-Z0-9_]+$');
+    if (!validChars.hasMatch(value))
+      return 'Only letters, numbers, and underscores allowed';
+    return null;
+  }
+
   String? _validatePassword(String? value) {
-    if (value == null || value.length < 6)
-      return 'Password must be at least 6 characters';
+    if (value == null || value.isEmpty) return 'Password is required';
+    if (_isSignUp) {
+      if (value.length < 8) return 'Must be at least 8 characters long';
+      if (!value.contains(RegExp(r'[A-Z]')))
+        return 'Must contain at least one uppercase letter';
+      if (!value.contains(RegExp(r'[a-z]')))
+        return 'Must contain at least one lowercase letter';
+      if (!value.contains(RegExp(r'[0-9]')))
+        return 'Must contain at least one number';
+      if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]')))
+        return 'Must contain at least one special character';
+    }
     return null;
   }
 
@@ -116,6 +145,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   style: TextStyle(color: Colors.grey),
                 ),
                 const SizedBox(height: 64),
+                if (_isSignUp) ...[
+                  TextFormField(
+                    controller: _username,
+                    keyboardType: TextInputType.text,
+                    decoration: const InputDecoration(
+                      labelText: 'Username',
+                      prefixIcon: Icon(Icons.alternate_email),
+                    ),
+                    validator: _validateUsername,
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 TextFormField(
                   controller: _email,
                   keyboardType: TextInputType.emailAddress,
@@ -149,7 +190,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               strokeWidth: 2,
                             ),
                           )
-                        : Text(_isSignUp ? 'Create Account' : 'Login'),
+                        : Text(_isSignUp ? 'Create Secure Account' : 'Login'),
                   ),
                 ),
                 const SizedBox(height: 16),
