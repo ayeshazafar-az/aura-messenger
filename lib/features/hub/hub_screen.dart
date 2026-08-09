@@ -31,6 +31,7 @@ class HubScreen extends StatelessWidget {
             itemCount: users.length,
             itemBuilder: (context, index) {
               final user = users[index].data() as Map<String, dynamic>;
+              final bool isPrivate = user['isPrivate'] ?? false;
 
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -68,9 +69,14 @@ class HubScreen extends StatelessWidget {
                       fontSize: 18,
                     ),
                   ),
-                  subtitle: const Text(
-                    'Tap to open secure chat',
-                    style: TextStyle(color: Colors.black54),
+                  subtitle: Text(
+                    isPrivate ? 'Private Account' : 'Tap to open secure chat',
+                    style: TextStyle(
+                      color: isPrivate ? Colors.redAccent : Colors.black54,
+                      fontStyle: isPrivate
+                          ? FontStyle.italic
+                          : FontStyle.normal,
+                    ),
                   ),
                   trailing: Container(
                     padding: const EdgeInsets.all(8),
@@ -78,17 +84,30 @@ class HubScreen extends StatelessWidget {
                       color: const Color(0xFFF0F2F5),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
-                      Icons.chat_bubble_rounded,
-                      color: Color(0xFF0084FF),
+                    child: Icon(
+                      isPrivate ? Icons.lock : Icons.chat_bubble_rounded,
+                      color: isPrivate
+                          ? Colors.redAccent
+                          : const Color(0xFF0084FF),
                       size: 20,
                     ),
                   ),
                   onTap: () {
-                    final name =
-                        user['username'] ??
-                        user['email'].toString().split('@')[0];
-                    context.push('/chat/${user['uid']}?name=$name');
+                    if (isPrivate) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'This account is private and does not accept direct messages.',
+                          ),
+                          backgroundColor: Colors.redAccent,
+                        ),
+                      );
+                    } else {
+                      final name =
+                          user['username'] ??
+                          user['email'].toString().split('@')[0];
+                      context.push('/chat/${user['uid']}?name=$name');
+                    }
                   },
                 ),
               );
