@@ -381,39 +381,314 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
+
+  void _navigateTo(BuildContext context, Widget screen) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text(
+          'Settings',
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: ListView(
         children: [
-          const ListTile(
-            leading: Icon(Icons.notifications),
-            title: Text('Notifications'),
-          ),
-          const ListTile(
-            leading: Icon(Icons.security),
-            title: Text('Privacy & Security'),
-          ),
-          const ListTile(
-            leading: Icon(Icons.palette),
-            title: Text('Appearance'),
-          ),
-          const ListTile(
-            leading: Icon(Icons.help),
-            title: Text('Help & Support'),
-          ),
-          const Divider(),
+          const SizedBox(height: 16),
           ListTile(
-            leading: const Icon(Icons.logout, color: Colors.red),
+            leading: _buildIcon(Icons.notifications, Colors.orange),
+            title: const Text(
+              'Notifications',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            onTap: () =>
+                _navigateTo(context, const NotificationsSettingsScreen()),
+          ),
+          ListTile(
+            leading: _buildIcon(Icons.security, Colors.blue),
+            title: const Text(
+              'Privacy & Security',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            onTap: () => _navigateTo(context, const PrivacySettingsScreen()),
+          ),
+          ListTile(
+            leading: _buildIcon(Icons.palette, Colors.purple),
+            title: const Text(
+              'Appearance',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            onTap: () => _navigateTo(context, const AppearanceSettingsScreen()),
+          ),
+          ListTile(
+            leading: _buildIcon(Icons.help, Colors.green),
+            title: const Text(
+              'Help & Support',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            onTap: () => _navigateTo(context, const HelpSupportScreen()),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Divider(height: 1),
+          ),
+          ListTile(
+            leading: _buildIcon(Icons.logout, Colors.redAccent),
             title: const Text(
               'Logout',
-              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             onTap: () async {
               await ref.read(authServiceProvider).signOut();
               if (context.mounted) context.go('/login');
             },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIcon(IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Icon(icon, color: color),
+    );
+  }
+}
+
+class NotificationsSettingsScreen extends StatefulWidget {
+  const NotificationsSettingsScreen({super.key});
+  @override
+  State<NotificationsSettingsScreen> createState() =>
+      _NotificationsSettingsScreenState();
+}
+
+class _NotificationsSettingsScreenState
+    extends State<NotificationsSettingsScreen> {
+  bool push = true;
+  bool sounds = true;
+  bool vibrates = false;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Notifications')),
+      body: ListView(
+        children: [
+          SwitchListTile(
+            title: const Text('Push Notifications'),
+            subtitle: const Text('Receive alerts for new messages'),
+            value: push,
+            onChanged: (v) => setState(() => push = v),
+            activeColor: const Color(0xFF8B5CF6),
+          ),
+          SwitchListTile(
+            title: const Text('Message Sounds'),
+            value: sounds,
+            onChanged: (v) => setState(() => sounds = v),
+            activeColor: const Color(0xFF8B5CF6),
+          ),
+          SwitchListTile(
+            title: const Text('In-App Vibrations'),
+            value: vibrates,
+            onChanged: (v) => setState(() => vibrates = v),
+            activeColor: const Color(0xFF8B5CF6),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class PrivacySettingsScreen extends StatefulWidget {
+  const PrivacySettingsScreen({super.key});
+  @override
+  State<PrivacySettingsScreen> createState() => _PrivacySettingsScreenState();
+}
+
+class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
+  bool readReceipts = true;
+  bool activityStatus = true;
+  bool biometrics = false;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Privacy & Security')),
+      body: ListView(
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Message Controls',
+              style: TextStyle(
+                color: Color(0xFF8B5CF6),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          SwitchListTile(
+            title: const Text('Read Receipts'),
+            subtitle: const Text(
+              'Let others know when you have read their messages.',
+            ),
+            value: readReceipts,
+            onChanged: (v) => setState(() => readReceipts = v),
+            activeColor: const Color(0xFF8B5CF6),
+          ),
+          SwitchListTile(
+            title: const Text('Activity Status'),
+            subtitle: const Text('Let others see when you are online.'),
+            value: activityStatus,
+            onChanged: (v) => setState(() => activityStatus = v),
+            activeColor: const Color(0xFF8B5CF6),
+          ),
+          const Divider(),
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Security',
+              style: TextStyle(
+                color: Color(0xFF8B5CF6),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          SwitchListTile(
+            title: const Text('App Lock (Biometrics)'),
+            subtitle: const Text(
+              'Require Face ID or Fingerprint to open Aura.',
+            ),
+            value: biometrics,
+            onChanged: (v) => setState(() => biometrics = v),
+            activeColor: const Color(0xFF8B5CF6),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class AppearanceSettingsScreen extends StatelessWidget {
+  const AppearanceSettingsScreen({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Appearance')),
+      body: ListView(
+        children: [
+          RadioListTile(
+            title: const Text('System Default'),
+            value: 1,
+            groupValue: 1,
+            onChanged: (v) {},
+            activeColor: const Color(0xFF8B5CF6),
+          ),
+          RadioListTile(
+            title: const Text('Light Mode'),
+            value: 2,
+            groupValue: 1,
+            onChanged: (v) {},
+            activeColor: const Color(0xFF8B5CF6),
+          ),
+          RadioListTile(
+            title: const Text('Dark Mode'),
+            value: 3,
+            groupValue: 1,
+            onChanged: (v) {},
+            activeColor: const Color(0xFF8B5CF6),
+          ),
+          const Divider(),
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Accent Color',
+              style: TextStyle(
+                color: Color(0xFF8B5CF6),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Color(0xFF8B5CF6),
+              radius: 12,
+            ),
+            title: Text('Aura Violet (Default)'),
+          ),
+          const ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Color(0xFFF43F5E),
+              radius: 12,
+            ),
+            title: Text('Rose Pink'),
+          ),
+          const ListTile(
+            leading: CircleAvatar(backgroundColor: Colors.black, radius: 12),
+            title: Text('True Black (Premium)'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class HelpSupportScreen extends StatelessWidget {
+  const HelpSupportScreen({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Help & Support')),
+      body: ListView(
+        children: const [
+          ListTile(
+            leading: Icon(Icons.help_center_outlined, color: Color(0xFF8B5CF6)),
+            title: Text('Help Center'),
+            trailing: Icon(Icons.open_in_new, size: 16),
+          ),
+          ListTile(
+            leading: Icon(Icons.mail_outline, color: Color(0xFF8B5CF6)),
+            title: Text('Contact Us'),
+            trailing: Icon(Icons.arrow_forward_ios, size: 16),
+          ),
+          ListTile(
+            leading: Icon(Icons.article_outlined, color: Color(0xFF8B5CF6)),
+            title: Text('Terms and Privacy Policy'),
+          ),
+          Divider(),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 32),
+            child: Center(
+              child: Column(
+                children: [
+                  Icon(Icons.bubble_chart, size: 48, color: Color(0xFF8B5CF6)),
+                  SizedBox(height: 16),
+                  Text(
+                    'Aura Messenger',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                  Text(
+                    'Version 1.0.0 (Release build)',
+                    style: TextStyle(color: Colors.black54),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
