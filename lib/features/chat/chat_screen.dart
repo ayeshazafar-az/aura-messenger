@@ -130,18 +130,27 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
+          gradient: isLocked
+              ? null
+              : isMe
+              ? const LinearGradient(
+                  colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
+                  begin: Alignment.bottomLeft,
+                  end: Alignment.topRight,
+                )
+              : null,
           color: isLocked
               ? const Color(0xFF1E1E1E)
               : isMe
-              ? const Color(0xFF007AFF) // iMessage Blue
-              : const Color(0xFFE5E5EA), // Soft Grey
-          borderRadius: BorderRadius.circular(20).copyWith(
+              ? null
+              : Colors.white,
+          borderRadius: BorderRadius.circular(22).copyWith(
             bottomRight: isMe
-                ? const Radius.circular(4)
-                : const Radius.circular(20),
+                ? const Radius.circular(6)
+                : const Radius.circular(22),
             bottomLeft: isMe
-                ? const Radius.circular(20)
-                : const Radius.circular(4),
+                ? const Radius.circular(22)
+                : const Radius.circular(6),
           ),
           border: isLocked
               ? Border.all(color: Colors.amberAccent, width: 1.5)
@@ -154,7 +163,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     spreadRadius: 1,
                   ),
                 ]
-              : [],
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
         ),
         child: isLocked
             ? _buildLockedVault(unlockTime!)

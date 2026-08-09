@@ -1,22 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/auth_service.dart';
+import 'package:go_router/go_router.dart';
 
-class HubScreen extends ConsumerWidget {
+class HubScreen extends StatelessWidget {
   const HubScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final authService = ref.watch(authServiceProvider);
-    final currentUser = authService.currentUser;
-
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Chats',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          'Messages',
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 28),
         ),
         centerTitle: false,
       ),
@@ -29,39 +24,73 @@ class HubScreen extends ConsumerWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final users = snapshot.data!.docs
-              .where((doc) => doc['uid'] != currentUser?.uid)
-              .toList();
-
-          if (users.isEmpty) {
-            return const Center(
-              child: Text('No other users found. Have a friend sign up!'),
-            );
-          }
+          final users = snapshot.data!.docs;
 
           return ListView.builder(
+            padding: const EdgeInsets.only(top: 8, bottom: 24),
             itemCount: users.length,
             itemBuilder: (context, index) {
               final user = users[index].data() as Map<String, dynamic>;
-              return ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFF3B82F6),
-                  child: Icon(Icons.person, color: Colors.white),
+
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                title: Text(
-                  '@${user['username'] ?? user['email'].toString().split('@')[0]}',
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  leading: CircleAvatar(
+                    radius: 28,
+                    backgroundColor: const Color(
+                      0xFF0084FF,
+                    ).withValues(alpha: 0.1),
+                    child: const Icon(
+                      Icons.person,
+                      color: Color(0xFF0084FF),
+                      size: 30,
+                    ),
+                  ),
+                  title: Text(
+                    '@${user['username'] ?? user['email'].toString().split('@')[0]}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                  subtitle: const Text(
+                    'Tap to open secure chat',
+                    style: TextStyle(color: Colors.black54),
+                  ),
+                  trailing: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0F2F5),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.chat_bubble_rounded,
+                      color: Color(0xFF0084FF),
+                      size: 20,
+                    ),
+                  ),
+                  onTap: () {
+                    final name =
+                        user['username'] ??
+                        user['email'].toString().split('@')[0];
+                    context.push('/chat/${user['uid']}?name=$name');
+                  },
                 ),
-                subtitle: const Text('Tap to start encrypted chat...'),
-                trailing: const Icon(
-                  Icons.lock_clock,
-                  color: Colors.grey,
-                  size: 20,
-                ),
-                onTap: () {
-                  context.push(
-                    '/chat/${user['uid']}?name=${user['email'].toString().split('@')[0]}',
-                  );
-                },
               );
             },
           );
