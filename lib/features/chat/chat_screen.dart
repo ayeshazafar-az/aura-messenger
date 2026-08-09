@@ -186,7 +186,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ? null
               : isMe
               ? const LinearGradient(
-                  colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
+                  colors: [Color(0xFF8B5CF6), Color(0xFFF43F5E)],
                   begin: Alignment.bottomLeft,
                   end: Alignment.topRight,
                 )
@@ -339,7 +339,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               onTap: _sendImage,
               child: const Icon(
                 Icons.photo_library,
-                color: Color(0xFF007AFF),
+                color: Color(0xFF8B5CF6),
                 size: 28,
               ),
             ),
@@ -366,7 +366,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
                     borderSide: const BorderSide(
-                      color: Color(0xFF007AFF),
+                      color: Color(0xFF8B5CF6),
                       width: 1.5,
                     ),
                   ),
@@ -378,7 +378,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               onTap: _sendMessage,
               child: const CircleAvatar(
                 radius: 20,
-                backgroundColor: Color(0xFF007AFF),
+                backgroundColor: Color(0xFF8B5CF6),
                 child: Icon(Icons.arrow_upward, color: Colors.white, size: 20),
               ),
             ),

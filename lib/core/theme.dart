@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 class AppTheme {
   static final ThemeData modernTheme = ThemeData.light().copyWith(
     scaffoldBackgroundColor: const Color(0xFFF4F7F6), // Smooth light gray-blue
-    primaryColor: const Color(0xFF0084FF),
+    primaryColor: const Color(0xFF8B5CF6),
     colorScheme: const ColorScheme.light(
-      primary: Color(0xFF0084FF),
+      primary: Color(0xFF8B5CF6),
       secondary: Color(0xFFFF2D55),
       surface: Colors.white,
       onSurface: Colors.black87,
@@ -21,11 +21,11 @@ class AppTheme {
         color: Colors.black87,
         letterSpacing: -0.5,
       ),
-      iconTheme: IconThemeData(color: Color(0xFF0084FF)),
+      iconTheme: IconThemeData(color: Color(0xFF8B5CF6)),
     ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: Colors.white,
-      selectedItemColor: Color(0xFF0084FF),
+      selectedItemColor: Color(0xFF8B5CF6),
       unselectedItemColor: Color(0xFFB0BEC5),
       showUnselectedLabels: true,
       elevation: 16,
@@ -44,21 +44,21 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Color(0xFF0084FF), width: 2),
+        borderSide: const BorderSide(color: Color(0xFF8B5CF6), width: 2),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
       labelStyle: const TextStyle(color: Colors.black54),
-      prefixIconColor: const Color(0xFF0084FF),
+      prefixIconColor: const Color(0xFF8B5CF6),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         enableFeedback: true,
-        backgroundColor: const Color(0xFF0084FF),
+        backgroundColor: const Color(0xFF8B5CF6),
         foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         padding: const EdgeInsets.symmetric(vertical: 18),
         elevation: 6,
-        shadowColor: const Color(0xFF0084FF),
+        shadowColor: const Color(0xFF8B5CF6),
         textStyle: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,

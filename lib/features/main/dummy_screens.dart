@@ -98,7 +98,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     child: Icon(
                       Icons.person,
                       size: 60,
-                      color: Color(0xFF0084FF),
+                      color: Color(0xFF8B5CF6),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -140,10 +140,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       secondary: Icon(
                         _isPrivate ? Icons.lock : Icons.lock_open,
-                        color: const Color(0xFF0084FF),
+                        color: const Color(0xFF8B5CF6),
                       ),
                       value: _isPrivate,
-                      activeColor: const Color(0xFF0084FF),
+                      activeColor: const Color(0xFF8B5CF6),
                       onChanged: (val) => _togglePrivacy(val),
                     ),
                   ),

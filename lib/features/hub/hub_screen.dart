@@ -54,11 +54,11 @@ class HubScreen extends StatelessWidget {
                   leading: CircleAvatar(
                     radius: 28,
                     backgroundColor: const Color(
-                      0xFF0084FF,
+                      0xFF8B5CF6,
                     ).withValues(alpha: 0.1),
                     child: const Icon(
                       Icons.person,
-                      color: Color(0xFF0084FF),
+                      color: Color(0xFF8B5CF6),
                       size: 30,
                     ),
                   ),
@@ -88,7 +88,7 @@ class HubScreen extends StatelessWidget {
                       isPrivate ? Icons.lock : Icons.chat_bubble_rounded,
                       color: isPrivate
                           ? Colors.redAccent
-                          : const Color(0xFF0084FF),
+                          : const Color(0xFF8B5CF6),
                       size: 20,
                     ),
                   ),
@@ -102,7 +102,7 @@ class HubScreen extends StatelessWidget {
                           content: Text(
                             'Private Account: Your first message will be sent as a Request.',
                           ),
-                          backgroundColor: Color(0xFF0084FF),
+                          backgroundColor: Color(0xFF8B5CF6),
                           duration: Duration(seconds: 3),
                         ),
                       );

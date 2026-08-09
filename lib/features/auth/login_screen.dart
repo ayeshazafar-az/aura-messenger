@@ -147,7 +147,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFE0C3FC), Color(0xFF8EC5FC)],
+            colors: [Color(0xFF8B5CF6), Color(0xFFF43F5E)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -175,7 +175,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           fontSize: 48,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 2,
-                          color: Color(0xFF0084FF),
+                          color: Color(0xFF8B5CF6),
                         ),
                       ),
                       const SizedBox(height: 8),
