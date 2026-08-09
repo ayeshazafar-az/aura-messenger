@@ -48,20 +48,153 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
     if (xFile == null) return;
 
-    final user = ref.read(authServiceProvider).currentUser;
-    if (user != null) {
-      await ref
-          .read(postServiceProvider)
-          .uploadPost(user.uid, File(xFile.path), 'Just sharing some vibes ✨');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Post uploaded successfully 📸'),
-            backgroundColor: Colors.green,
+    if (!mounted) return;
+    final TextEditingController captionController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('New Post'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(
+                  File(xFile.path),
+                  height: 150,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: captionController,
+                decoration: const InputDecoration(
+                  hintText: 'Write a caption...',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                final user = ref.read(authServiceProvider).currentUser;
+                if (user != null) {
+                  await ref
+                      .read(postServiceProvider)
+                      .uploadPost(
+                        user.uid,
+                        File(xFile.path),
+                        captionController.text.trim().isEmpty
+                            ? 'Just sharing some vibes ✨'
+                            : captionController.text.trim(),
+                      );
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Post uploaded successfully 📸'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Share'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showCreateMenu() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Create',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              const Divider(height: 32),
+              ListTile(
+                leading: const Icon(Icons.grid_on, size: 28),
+                title: const Text('Post', style: TextStyle(fontSize: 16)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _uploadPost();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.data_usage_rounded, size: 28),
+                title: const Text('Story', style: TextStyle(fontSize: 16)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _uploadStory();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.ondemand_video, size: 28),
+                title: const Text('Reel', style: TextStyle(fontSize: 16)),
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Reels coming soon!')),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.lock_clock, size: 28),
+                title: const Text(
+                  'Time-Locked Vault',
+                  style: TextStyle(fontSize: 16),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Time-Locked functionality coming soon!'),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 24),
+            ],
           ),
         );
-      }
-    }
+      },
+    );
   }
 
   Widget _buildPostCard(Map<String, dynamic> post) {
@@ -137,7 +270,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add_box_outlined, color: Colors.black87),
-            onPressed: _uploadPost,
+            onPressed: _showCreateMenu,
           ),
           IconButton(
             icon: const Icon(Icons.favorite_border, color: Colors.black87),
