@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import '../../core/auth_service.dart';
 import '../../core/chat_service.dart';
 
@@ -476,6 +477,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     DateTime? unlockTime,
   ) {
     final data = doc.data() as Map<String, dynamic>;
+    final timeString = data['timestamp'] != null
+        ? DateFormat('h:mm a').format((data['timestamp'] as Timestamp).toDate())
+        : '';
+
     return GestureDetector(
       onLongPress: () => _showMessageOptions(doc, data, isMe),
       onTap: () {
@@ -537,45 +542,90 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     ),
                   ],
           ),
-          child: isLocked
-              ? _buildLockedVault(unlockTime!)
-              : data['imageBase64'] != null
-              ? (data['viewLimit'] != null
-                    ? _buildViewOnceCover(data, isMe)
-                    : ClipRRect(
-                        borderRadius: BorderRadius.circular(18),
-                        child: Image.memory(
-                          base64Decode(data['imageBase64']),
-                          width: 250,
-                          fit: BoxFit.cover,
-                        ),
-                      ))
-              : Column(
-                  crossAxisAlignment: isMe
-                      ? CrossAxisAlignment.end
-                      : CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      data['message'] ?? '',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: isMe ? Colors.white : Colors.black87,
-                      ),
-                    ),
-                    if (data['isEdited'] == true)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Text(
-                          ' (edited)',
+          child: Column(
+            crossAxisAlignment: isMe
+                ? CrossAxisAlignment.end
+                : CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              isLocked
+                  ? _buildLockedVault(unlockTime!)
+                  : data['imageBase64'] != null
+                  ? (data['viewLimit'] != null
+                        ? _buildViewOnceCover(data, isMe)
+                        : ClipRRect(
+                            borderRadius: BorderRadius.circular(18),
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth:
+                                    MediaQuery.of(context).size.width * 0.75,
+                              ),
+                              child: GestureDetector(
+                                onTap: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => GestureDetector(
+                                      onTap: () => Navigator.pop(context),
+                                      child: Scaffold(
+                                        backgroundColor: Colors.black,
+                                        body: Center(
+                                          child: InteractiveViewer(
+                                            child: Image.memory(
+                                              base64Decode(data['imageBase64']),
+                                              fit: BoxFit.contain,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Image.memory(
+                                  base64Decode(data['imageBase64']),
+                                  fit: BoxFit
+                                      .contain, // natural aspect uncropped
+                                ),
+                              ),
+                            ),
+                          ))
+                  : Column(
+                      crossAxisAlignment: isMe
+                          ? CrossAxisAlignment.end
+                          : CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          data['message'] ?? '',
                           style: TextStyle(
-                            fontSize: 10,
-                            color: isMe ? Colors.white70 : Colors.black45,
+                            fontSize: 16,
+                            color: isMe ? Colors.white : Colors.black87,
                           ),
                         ),
-                      ),
-                  ],
+                        if (data['isEdited'] == true)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              ' (edited)',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: isMe ? Colors.white70 : Colors.black45,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+              const SizedBox(height: 4),
+              Text(
+                timeString,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: isLocked
+                      ? Colors.amber.withOpacity(0.7)
+                      : (isMe ? Colors.white70 : Colors.black45),
                 ),
+              ),
+            ],
+          ),
         ),
       ),
     );

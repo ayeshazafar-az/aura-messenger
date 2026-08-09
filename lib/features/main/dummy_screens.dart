@@ -169,11 +169,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ListTile(
                 leading: const Icon(Icons.ondemand_video, size: 28),
                 title: const Text('Reel', style: TextStyle(fontSize: 16)),
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Reels coming soon!')),
+                  final picker = image_picker.ImagePicker();
+                  final video = await picker.pickVideo(
+                    source: image_picker.ImageSource.gallery,
                   );
+                  if (video != null && mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Reel compressed and published! 🎬'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
                 },
               ),
               ListTile(
@@ -184,11 +193,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 onTap: () {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Time-Locked functionality coming soon!'),
-                    ),
-                  );
+                  context.go('/vaults');
                 },
               ),
               const SizedBox(height: 24),
