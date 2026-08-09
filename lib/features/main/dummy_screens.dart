@@ -45,6 +45,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final xFile = await picker.pickImage(
       source: image_picker.ImageSource.gallery,
       imageQuality: 50,
+      maxWidth: 600,
+      maxHeight: 600,
     );
     if (xFile == null) return;
 
@@ -197,8 +199,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildPostCard(Map<String, dynamic> post) {
+  Widget _buildPostCard(QueryDocumentSnapshot postDoc) {
     final theme = Theme.of(context);
+    final post = postDoc.data() as Map<String, dynamic>;
+    final postId = postDoc.id;
+    final currentUserId = ref.read(authServiceProvider).currentUser?.uid;
+    final isOwner = post['uploaderId'] == currentUserId;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -211,7 +218,66 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             post['uploaderId'].toString().substring(0, 5),
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          trailing: const Icon(Icons.more_vert),
+          trailing: isOwner
+              ? PopupMenuButton<String>(
+                  onSelected: (value) async {
+                    if (value == 'delete') {
+                      await FirebaseFirestore.instance
+                          .collection('posts')
+                          .doc(postId)
+                          .delete();
+                      if (mounted)
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Post deleted')),
+                        );
+                    } else if (value == 'edit') {
+                      final TextEditingController editController =
+                          TextEditingController(text: post['caption']);
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Edit Caption'),
+                          content: TextField(
+                            controller: editController,
+                            maxLines: 3,
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Cancel'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () async {
+                                Navigator.pop(context);
+                                await FirebaseFirestore.instance
+                                    .collection('posts')
+                                    .doc(postId)
+                                    .update({
+                                      'caption': editController.text.trim(),
+                                    });
+                              },
+                              child: const Text('Save'),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Text('Edit Caption'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Text(
+                        'Delete Post',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                )
+              : const Icon(Icons.more_vert),
         ),
         Image.memory(
           base64Decode(post['imageBase64']),
@@ -285,164 +351,163 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: ListTile(
-                onTap: _uploadStory,
-                contentPadding: EdgeInsets.zero,
-                leading: Stack(
-                  children: [
-                    const CircleAvatar(
-                      radius: 28,
-                      backgroundColor: Color(0xFFF1F5F9),
-                      child: Icon(
-                        Icons.person,
-                        color: Color(0xFF8B5CF6),
-                        size: 30,
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF8B5CF6),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                        child: const Icon(
-                          Icons.add,
-                          color: Colors.white,
-                          size: 14,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                title: const Text(
-                  'My Story',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                subtitle: const Text(
-                  'Tap to add a story update',
-                  style: TextStyle(color: Colors.black54),
-                ),
-              ),
-            ),
-          ),
-          const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.only(left: 16, top: 16, bottom: 8),
-              child: Text(
-                'Recent Updates',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black54,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-          ),
-          StreamBuilder<QuerySnapshot>(
-            stream: ref.watch(storyServiceProvider).getActiveStories(),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return const SliverToBoxAdapter(
-                  child: Center(child: Text('Error loading stories')),
-                );
-              }
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SliverToBoxAdapter(
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              }
+            child: StreamBuilder<QuerySnapshot>(
+              stream: ref.watch(storyServiceProvider).getActiveStories(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SizedBox(
+                    height: 110,
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
 
-              final stories = snapshot.data!.docs;
+                final stories = snapshot.data?.docs ?? [];
 
-              if (stories.isEmpty) {
-                return const SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Center(
-                      child: Text(
-                        'No recent updates.',
-                        style: TextStyle(color: Colors.black54),
-                      ),
-                    ),
-                  ),
-                );
-              }
-
-              return SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final data = stories[index].data() as Map<String, dynamic>;
-
-                  return ListTile(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => Scaffold(
-                          backgroundColor: Colors.black,
-                          appBar: AppBar(
-                            backgroundColor: Colors.black,
-                            title: const Text(
-                              'Viewing Story',
-                              style: TextStyle(color: Colors.white),
+                return Container(
+                  height: 120,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: stories.length + 1,
+                    itemBuilder: (context, index) {
+                      if (index == 0) {
+                        return GestureDetector(
+                          onTap: _showCreateMenu,
+                          child: Container(
+                            width: 80,
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Stack(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 32,
+                                      backgroundColor: Theme.of(
+                                        context,
+                                      ).primaryColor.withOpacity(0.1),
+                                      child: Icon(
+                                        Icons.person,
+                                        color: Theme.of(context).primaryColor,
+                                        size: 34,
+                                      ),
+                                    ),
+                                    Positioned(
+                                      bottom: 0,
+                                      right: 0,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(2),
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context).primaryColor,
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: Theme.of(
+                                              context,
+                                            ).scaffoldBackgroundColor,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.add,
+                                          color: Colors.white,
+                                          size: 16,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                const Text(
+                                  'Your Story',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              ],
                             ),
-                            iconTheme: const IconThemeData(color: Colors.white),
                           ),
-                          body: Center(
-                            child: Image.memory(
-                              base64Decode(data['imageBase64']),
+                        );
+                      }
+
+                      final data =
+                          stories[index - 1].data() as Map<String, dynamic>;
+                      final base64String = data['imageBase64'];
+                      final uploaderId = data['uploaderId']
+                          .toString()
+                          .substring(0, 5);
+
+                      return GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => Scaffold(
+                              backgroundColor: Colors.black,
+                              appBar: AppBar(
+                                backgroundColor: Colors.black,
+                                elevation: 0,
+                                iconTheme: const IconThemeData(
+                                  color: Colors.white,
+                                ),
+                              ),
+                              body: Center(
+                                child: Image.memory(base64Decode(base64String)),
+                              ),
                             ),
+                          );
+                        },
+                        child: Container(
+                          width: 80,
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(3),
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Color(0xFF8B5CF6),
+                                      Color(0xFFF43F5E),
+                                    ],
+                                  ),
+                                ),
+                                child: Container(
+                                  padding: const EdgeInsets.all(2),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Theme.of(
+                                      context,
+                                    ).scaffoldBackgroundColor,
+                                  ),
+                                  child: CircleAvatar(
+                                    radius: 28,
+                                    backgroundImage: MemoryImage(
+                                      base64Decode(base64String),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                uploaderId,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       );
                     },
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-                    leading: Container(
-                      padding: const EdgeInsets.all(3),
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [Color(0xFF8B5CF6), Color(0xFFF43F5E)],
-                        ),
-                      ),
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white,
-                        ),
-                        child: CircleAvatar(
-                          radius: 22,
-                          backgroundColor: const Color(0xFFF1F5F9),
-                          backgroundImage: MemoryImage(
-                            base64Decode(data['imageBase64']),
-                          ),
-                        ),
-                      ),
-                    ),
-                    title: Text(
-                      data['uploaderId'].toString().substring(0, 5),
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).primaryColor,
-                      ),
-                    ),
-                    subtitle: const Text(
-                      'Recently',
-                      style: TextStyle(color: Colors.black54),
-                    ),
-                  );
-                }, childCount: stories.length),
-              );
-            },
+                  ),
+                );
+              },
+            ),
           ),
+          const SliverToBoxAdapter(child: Divider(height: 1)),
           SliverToBoxAdapter(
             child: StreamBuilder<QuerySnapshot>(
               stream: ref.watch(postServiceProvider).getFeedPosts(),
@@ -454,8 +519,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: posts.length,
                   itemBuilder: (context, index) {
-                    final post = posts[index].data() as Map<String, dynamic>;
-                    return _buildPostCard(post);
+                    return _buildPostCard(posts[index]);
                   },
                 );
               },

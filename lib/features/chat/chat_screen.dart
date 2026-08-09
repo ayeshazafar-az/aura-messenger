@@ -133,6 +133,7 @@ class ChatScreen extends ConsumerStatefulWidget {
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  int? _selectedLockMinutes;
 
   @override
   void dispose() {
@@ -223,17 +224,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   void _sendMessage() async {
     if (_controller.text.trim().isEmpty) return;
 
-    // Regular text messages don't prompt time locks unless requested. We'll skip time locks on simple text to mirror Insta.
     final currentUserId = ref.read(authServiceProvider).currentUser!.uid;
     final chatService = ref.read(chatServiceProvider);
+
+    DateTime? unlockDate;
+    if (_selectedLockMinutes != null) {
+      unlockDate = DateTime.now().add(Duration(minutes: _selectedLockMinutes!));
+    }
 
     await chatService.sendMessage(
       widget.receiverId,
       _controller.text.trim(),
-      null, // text messages don't have time lock anymore for speed
+      unlockDate,
       currentUserId,
     );
     _controller.clear();
+    setState(() => _selectedLockMinutes = null);
   }
 
   void _sendImage() async {
@@ -671,7 +677,29 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 size: 28,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 4),
+            PopupMenuButton<int>(
+              icon: Icon(
+                Icons.lock_clock,
+                color: _selectedLockMinutes != null
+                    ? Colors.amber
+                    : const Color(0xFF8B5CF6),
+                size: 28,
+              ),
+              onSelected: (val) {
+                setState(() => _selectedLockMinutes = val == 0 ? null : val);
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(value: 0, child: Text('No Time Lock')),
+                const PopupMenuItem(value: 1, child: Text('Lock for 1 Minute')),
+                const PopupMenuItem(
+                  value: 5,
+                  child: Text('Lock for 5 Minutes'),
+                ),
+                const PopupMenuItem(value: 60, child: Text('Lock for 1 Hour')),
+              ],
+            ),
+            const SizedBox(width: 4),
             Expanded(
               child: TextField(
                 controller: _controller,
