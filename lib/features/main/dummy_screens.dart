@@ -44,12 +44,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Instagram Clone',
-          style: TextStyle(
-            fontWeight: FontWeight.w800,
-            fontSize: 24,
-            fontFamily: 'Billabong', // Mock font
-          ),
+          'Aura',
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24),
         ),
         actions: [
           IconButton(
@@ -270,38 +266,71 @@ class SearchScreen extends StatelessWidget {
   }
 }
 
-class ReelsScreen extends StatelessWidget {
-  const ReelsScreen({super.key});
+class VaultsScreen extends StatelessWidget {
+  const VaultsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: const Text(
+          'Active Vaults',
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24),
+        ),
+        elevation: 0,
+      ),
+      body: Column(
         children: [
-          const Center(
-            child: Icon(
-              Icons.play_circle_outline,
-              size: 80,
-              color: Colors.white54,
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(20),
             ),
-          ),
-          Positioned(
-            bottom: 20,
-            left: 10,
+            margin: const EdgeInsets.all(16),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  '@ayesha_zafar',
+              children: [
+                Icon(
+                  Icons.lock_clock,
+                  size: 48,
+                  color: Theme.of(context).primaryColor,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Zero Active Vaults',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'When someone sends you a time-locked payload, it will appear here bridging full encryption.',
+                  textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: Colors.grey,
+                    height: 1.5,
                   ),
                 ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () {},
+                  icon: const Icon(Icons.add_moderator),
+                  label: const Text('Create New Vault'),
+                ),
+              ],
+            ),
+          ),
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.all(32),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Icon(Icons.shield, color: Colors.green, size: 20),
+                SizedBox(width: 8),
                 Text(
-                  'Making a social app UI #flutter',
-                  style: TextStyle(color: Colors.white),
+                  'End-to-End Encrypted',
+                  style: TextStyle(color: Colors.black54, fontSize: 13),
                 ),
               ],
             ),
@@ -530,7 +559,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(title: const Text('Profile'), elevation: 0),
+      appBar: AppBar(
+        title: const Text('Profile'),
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
+          ),
+        ],
+      ),
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')

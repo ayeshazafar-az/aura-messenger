@@ -31,9 +31,9 @@ class MainScreen extends StatelessWidget {
             label: 'Chats',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.ondemand_video_outlined),
-            activeIcon: Icon(Icons.ondemand_video),
-            label: 'Reels',
+            icon: Icon(Icons.lock_outline),
+            activeIcon: Icon(Icons.lock),
+            label: 'Vaults',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
@@ -50,7 +50,7 @@ class MainScreen extends StatelessWidget {
     if (location.startsWith('/home')) return 0;
     if (location.startsWith('/search')) return 1;
     if (location.startsWith('/hub')) return 2;
-    if (location.startsWith('/reels')) return 3;
+    if (location.startsWith('/vaults')) return 3;
     if (location.startsWith('/profile')) return 4;
     return 0;
   }
@@ -67,7 +67,7 @@ class MainScreen extends StatelessWidget {
         context.go('/hub');
         break;
       case 3:
-        context.go('/reels');
+        context.go('/vaults');
         break;
       case 4:
         context.go('/profile');

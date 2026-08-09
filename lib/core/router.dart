@@ -32,9 +32,9 @@ final routerProvider = Provider<GoRouter>((ref) {
                 const NoTransitionPage(child: HubScreen()),
           ),
           GoRoute(
-            path: '/reels',
+            path: '/vaults',
             pageBuilder: (context, state) =>
-                const NoTransitionPage(child: ReelsScreen()),
+                const NoTransitionPage(child: VaultsScreen()),
           ),
           GoRoute(
             path: '/profile',
