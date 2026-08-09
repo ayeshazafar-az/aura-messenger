@@ -12,29 +12,62 @@ class AuthService {
   Stream<User?> get authStateChanges => _auth.authStateChanges();
   User? get currentUser => _auth.currentUser;
 
-  Future<User?> loginOrSignUp(String email, String password) async {
+  Future<User?> login(String email, String password) async {
     try {
       final credential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      // Ensure user exists in db
+
+      // Ensure user exists in db (in case Google sign-in was used before, or migrated)
       await _firestore.collection('users').doc(credential.user!.uid).set({
         'uid': credential.user!.uid,
         'email': email,
       }, SetOptions(merge: true));
+
+      // Account confirmation check
+      if (!credential.user!.emailVerified) {
+        await _auth.signOut();
+        throw Exception(
+          'Email not verified. Please check your inbox to confirm your account.',
+        );
+      }
+
       return credential.user;
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
-        final credential = await _auth.createUserWithEmailAndPassword(
-          email: email,
-          password: password,
+      if (e.code == 'user-not-found') {
+        throw Exception('Account not found. Please create an account first.');
+      } else if (e.code == 'invalid-credential' || e.code == 'wrong-password') {
+        throw Exception('Invalid email or password.');
+      }
+      throw Exception(e.message);
+    }
+  }
+
+  Future<User?> signUp(String email, String password) async {
+    try {
+      final credential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      await _firestore.collection('users').doc(credential.user!.uid).set({
+        'uid': credential.user!.uid,
+        'email': email,
+      });
+
+      // Send the confirmation link
+      await credential.user!.sendEmailVerification();
+
+      // Immediately sign out to force login after confirmation
+      await _auth.signOut();
+
+      return credential.user;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        throw Exception(
+          'An account with this email already exists. Please login.',
         );
-        await _firestore.collection('users').doc(credential.user!.uid).set({
-          'uid': credential.user!.uid,
-          'email': email,
-        });
-        return credential.user;
       }
       throw Exception(e.message);
     }
