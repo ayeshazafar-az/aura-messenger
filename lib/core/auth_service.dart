@@ -133,6 +133,20 @@ class AuthService {
     }
   }
 
+  Future<void> sendPasswordResetEmail(String email) async {
+    if (email.trim().isEmpty) throw Exception('Email cannot be empty.');
+    try {
+      await _auth.sendPasswordResetEmail(email: email.trim());
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        throw Exception('No user found matching this email address.');
+      }
+      throw Exception(e.message);
+    } catch (e) {
+      throw Exception('An error occurred. Please try again.');
+    }
+  }
+
   Future<void> signOut() async {
     await _auth.signOut();
   }
