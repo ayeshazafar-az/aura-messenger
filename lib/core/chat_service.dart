@@ -1,10 +1,13 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final chatServiceProvider = Provider<ChatService>((ref) => ChatService());
 
 class ChatService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   String _getChatRoomId(String userId1, String userId2) {
     List<String> ids = [userId1, userId2];
@@ -42,6 +45,53 @@ class ChatService {
       'senderId': senderId,
       'receiverId': receiverId,
       'message': message,
+      'timestamp': FieldValue.serverTimestamp(),
+      'unlockTime': unlockTime?.millisecondsSinceEpoch,
+    };
+
+    await roomDoc.collection('messages').add(newMessage);
+  }
+
+  Future<void> sendImageMessage(
+    String receiverId,
+    File imageFile,
+    DateTime? unlockTime,
+    String senderId,
+  ) async {
+    final String chatRoomId = _getChatRoomId(senderId, receiverId);
+
+    // 1. Upload Image to Firebase Storage securely
+    final String fileName =
+        DateTime.now().millisecondsSinceEpoch.toString() + '.jpg';
+    final ref = _storage
+        .ref()
+        .child('chat_images')
+        .child(chatRoomId)
+        .child(fileName);
+    await ref.putFile(imageFile);
+    final String imageUrl = await ref.getDownloadURL();
+
+    // 2. Setup room if new (metadata injection check)
+    final roomDoc = _firestore.collection('chat_rooms').doc(chatRoomId);
+    final roomSnapshot = await roomDoc.get();
+    if (!roomSnapshot.exists) {
+      final receiverDoc = await _firestore
+          .collection('users')
+          .doc(receiverId)
+          .get();
+      final isPrivate = receiverDoc.data()?['isPrivate'] ?? false;
+      await roomDoc.set({
+        'users': [senderId, receiverId],
+        'status': isPrivate ? 'requested' : 'accepted',
+        'initiator': senderId,
+      });
+    }
+
+    // 3. Save Message explicitly containing imageUrl
+    final newMessage = {
+      'senderId': senderId,
+      'receiverId': receiverId,
+      'imageUrl': imageUrl,
       'timestamp': FieldValue.serverTimestamp(),
       'unlockTime': unlockTime?.millisecondsSinceEpoch,
     };

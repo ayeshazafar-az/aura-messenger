@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../core/auth_service.dart';
 import '../../core/chat_service.dart';
 
@@ -27,7 +29,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    // Force UI rebuild every second for countdown locks
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) setState(() {});
     });
@@ -41,18 +42,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     super.dispose();
   }
 
-  void _sendMessage() async {
-    if (_controller.text.trim().isEmpty) return;
-
-    final currentUserId = ref.read(authServiceProvider).currentUser!.uid;
-    final chatService = ref.read(chatServiceProvider);
-
-    DateTime? selectedTime;
-
-    final result = await showDialog<int>(
+  Future<int?> _promptTimeLock() {
+    int tempSeconds = 15;
+    return showDialog<int>(
       context: context,
       builder: (context) {
-        int tempSeconds = 15;
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
@@ -100,20 +94,59 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         );
       },
     );
+  }
 
+  void _sendMessage() async {
+    if (_controller.text.trim().isEmpty) return;
+
+    final currentUserId = ref.read(authServiceProvider).currentUser!.uid;
+    final chatService = ref.read(chatServiceProvider);
+
+    final result = await _promptTimeLock();
     if (result == null || result == -1) return;
 
+    DateTime? selectedTime;
     if (result > 0) {
       selectedTime = DateTime.now().add(Duration(seconds: result));
     }
 
     await chatService.sendMessage(
       widget.receiverId,
-      _controller.text,
+      _controller.text.trim(),
       selectedTime,
       currentUserId,
     );
     _controller.clear();
+  }
+
+  void _sendImage() async {
+    final picker = ImagePicker();
+    final xFile = await picker.pickImage(source: ImageSource.gallery);
+    if (xFile == null) return; // User closed picker
+
+    final result = await _promptTimeLock();
+    if (result == null || result == -1) return;
+
+    DateTime? selectedTime;
+    if (result > 0) {
+      selectedTime = DateTime.now().add(Duration(seconds: result));
+    }
+
+    final currentUserId = ref.read(authServiceProvider).currentUser!.uid;
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Uploading Secure Image...')),
+      );
+    }
+
+    await ref
+        .read(chatServiceProvider)
+        .sendImageMessage(
+          widget.receiverId,
+          File(xFile.path),
+          selectedTime,
+          currentUserId,
+        );
   }
 
   Widget _buildMessageBubble(Map<String, dynamic> data, bool isMe) {
@@ -128,7 +161,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        padding: data['imageUrl'] != null && !isLocked
+            ? const EdgeInsets.all(4)
+            : const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
           gradient: isLocked
               ? null
@@ -165,7 +200,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ]
               : [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: Colors.black.withValues(alpha: 0.03),
                     blurRadius: 6,
                     offset: const Offset(0, 3),
                   ),
@@ -173,6 +208,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ),
         child: isLocked
             ? _buildLockedVault(unlockTime!)
+            : data['imageUrl'] != null
+            // Display native dynamic image
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: Image.network(
+                  data['imageUrl'],
+                  width: 250,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, progress) {
+                    if (progress == null) return child;
+                    return const Padding(
+                      padding: EdgeInsets.all(32.0),
+                      child: CircularProgressIndicator(color: Colors.white),
+                    );
+                  },
+                ),
+              )
+            // Display plain text
             : Text(
                 data['message'] ?? '',
                 style: TextStyle(
@@ -211,8 +264,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget _buildInputArea(DocumentSnapshot? roomDoc, String currentUserId) {
     if (roomDoc != null && roomDoc.exists) {
       final data = roomDoc.data() as Map<String, dynamic>;
-
-      // If status is requested, and YOU did not initiate the request (meaning you are the receiver)
       if (data['status'] == 'requested' && data['initiator'] != currentUserId) {
         return Container(
           padding: const EdgeInsets.all(16.0),
@@ -268,13 +319,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       }
     }
 
-    // Normal Input
     return Container(
       padding: const EdgeInsets.all(12.0),
       decoration: const BoxDecoration(color: Colors.white),
       child: SafeArea(
         child: Row(
           children: [
+            GestureDetector(
+              onTap: _sendImage,
+              child: const Icon(
+                Icons.photo_library,
+                color: Color(0xFF007AFF),
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 12),
             Expanded(
               child: TextField(
                 controller: _controller,
