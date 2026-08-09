@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart' as image_picker;
 import '../../core/auth_service.dart';
 import '../../core/story_service.dart';
+import '../../core/theme_provider.dart';
 
 class StatusScreen extends ConsumerStatefulWidget {
   const StatusScreen({super.key});

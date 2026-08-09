@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final themeProvider = StateNotifierProvider<ThemeNotifier, ThemeData>((ref) {
+final themeProvider = NotifierProvider<ThemeNotifier, ThemeData>(() {
   return ThemeNotifier();
 });
 
-class ThemeNotifier extends StateNotifier<ThemeData> {
-  ThemeNotifier() : super(_defaultTheme);
+class ThemeNotifier extends Notifier<ThemeData> {
+  @override
+  ThemeData build() => _defaultTheme;
 
   // Modern Violet/Rose App Theme
   static final ThemeData _defaultTheme = ThemeData(
