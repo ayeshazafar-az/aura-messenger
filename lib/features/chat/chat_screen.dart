@@ -25,19 +25,13 @@ class ChatScreen extends ConsumerStatefulWidget {
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  Timer? _timer;
-
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) setState(() {});
-    });
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -162,8 +156,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       unlockTime = DateTime.fromMillisecondsSinceEpoch(data['unlockTime']);
     }
 
-    bool isLocked = unlockTime != null && unlockTime.isAfter(DateTime.now());
+    if (unlockTime != null && unlockTime.isAfter(DateTime.now())) {
+      return StreamBuilder(
+        stream: Stream.periodic(const Duration(seconds: 1)),
+        builder: (context, _) {
+          bool isLocked = unlockTime!.isAfter(DateTime.now());
+          return _buildBubbleUI(data, isMe, isLocked, unlockTime);
+        },
+      );
+    }
+    return _buildBubbleUI(data, isMe, false, unlockTime);
+  }
 
+  Widget _buildBubbleUI(
+    Map<String, dynamic> data,
+    bool isMe,
+    bool isLocked,
+    DateTime? unlockTime,
+  ) {
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
