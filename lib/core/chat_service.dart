@@ -56,6 +56,7 @@ class ChatService {
     File imageFile,
     DateTime? unlockTime,
     String senderId,
+    int? viewLimit,
   ) async {
     final String chatRoomId = _getChatRoomId(senderId, receiverId);
 
@@ -87,6 +88,11 @@ class ChatService {
       'timestamp': FieldValue.serverTimestamp(),
       'unlockTime': unlockTime?.millisecondsSinceEpoch,
     };
+
+    if (viewLimit != null) {
+      newMessage['viewLimit'] = viewLimit;
+      newMessage['timesViewed'] = 0;
+    }
 
     await roomDoc.collection('messages').add(newMessage);
   }
