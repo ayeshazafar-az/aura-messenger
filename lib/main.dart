@@ -23,7 +23,7 @@ class AuraApp extends ConsumerWidget {
     final goRouter = ref.watch(routerProvider);
     return MaterialApp.router(
       title: 'Aura',
-      theme: AppTheme.darkTheme,
+      theme: AppTheme.lightTheme,
       routerConfig: goRouter,
       debugShowCheckedModeBanner: false,
     );

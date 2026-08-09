@@ -156,7 +156,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ? _buildLockedVault(unlockTime!)
             : Text(
                 data['message'] ?? '',
-                style: const TextStyle(fontSize: 16, color: Colors.white),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: isMe
+                      ? Colors.white
+                      : Theme.of(context).colorScheme.onSurface,
+                ),
               ),
       ),
     );
