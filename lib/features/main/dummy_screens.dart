@@ -867,140 +867,377 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authServiceProvider).currentUser;
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Profile'),
-        elevation: 0,
+        title: Row(
+          children: [
+            Icon(Icons.lock_outline, size: 16, color: theme.iconTheme.color),
+            const SizedBox(width: 8),
+            StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(user?.uid)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) return const Text('profile');
+                final name = snapshot.data!.data() as Map<String, dynamic>?;
+                return Text(
+                  name?['username'] ?? name?['name'] ?? 'profile',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings),
+            icon: Icon(
+              Icons.add_box_outlined,
+              color: theme.iconTheme.color,
+              size: 28,
+            ),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: Icon(Icons.menu, color: theme.iconTheme.color, size: 28),
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const SettingsScreen()),
             ),
           ),
         ],
+        elevation: 0,
+        backgroundColor: theme.scaffoldBackgroundColor,
       ),
-      body: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('users')
-            .doc(user?.uid)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData)
-            return const Center(child: CircularProgressIndicator());
-          final userData = snapshot.data!.data() as Map<String, dynamic>?;
-
-          return SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 24),
-                _buildProfileAvatar(userData),
-                const SizedBox(height: 32),
-
-                _buildListTile(
-                  'Name',
-                  userData?['name'] ?? 'Add your name',
-                  Icons.person,
-                  () => _updateField('Name', 'name', userData?['name'] ?? ''),
-                ),
-                const Divider(indent: 72, height: 1),
-
-                _buildListTile(
-                  'About',
-                  userData?['bio'] ?? 'Available',
-                  Icons.info_outline,
-                  () => _updateField(
-                    'About',
-                    'bio',
-                    userData?['bio'] ?? 'Available',
-                  ),
-                ),
-                const Divider(indent: 72, height: 1),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 16,
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.alternate_email,
-                        color: Colors.black45,
-                        size: 28,
-                      ),
-                      const SizedBox(width: 20),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Username',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.black54,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '@${userData?['username'] ?? 'temp'}',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ],
+      body: DefaultTabController(
+        length: 2,
+        child: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            return [
+              SliverToBoxAdapter(
+                child: StreamBuilder<DocumentSnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(user?.uid)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData)
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(32),
+                          child: CircularProgressIndicator(),
                         ),
-                      ),
+                      );
+                    final userData =
+                        snapshot.data!.data() as Map<String, dynamic>?;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 42,
+                                    backgroundColor: theme.primaryColor
+                                        .withValues(alpha: 0.1),
+                                    backgroundImage:
+                                        userData?['profileBase64'] != null
+                                        ? MemoryImage(
+                                            base64Decode(
+                                              userData!['profileBase64'],
+                                            ),
+                                          )
+                                        : null,
+                                    child: userData?['profileBase64'] == null
+                                        ? Icon(
+                                            Icons.person,
+                                            color: theme.primaryColor,
+                                            size: 40,
+                                          )
+                                        : null,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    userData?['name'] ?? 'User',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Expanded(
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Column(
+                                      children: const [
+                                        Text(
+                                          '8',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 20,
+                                          ),
+                                        ),
+                                        Text(
+                                          'posts',
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ],
+                                    ),
+                                    Column(
+                                      children: const [
+                                        Text(
+                                          '43',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 20,
+                                          ),
+                                        ),
+                                        Text(
+                                          'followers',
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ],
+                                    ),
+                                    Column(
+                                      children: const [
+                                        Text(
+                                          '45',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 20,
+                                          ),
+                                        ),
+                                        Text(
+                                          'following',
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            userData?['bio'] ?? 'Available\n✨',
+                            style: const TextStyle(fontSize: 14, height: 1.4),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    backgroundColor: theme.cardColor,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 6,
+                                    ),
+                                  ),
+                                  onPressed: () {},
+                                  child: Text(
+                                    'Edit profile',
+                                    style: TextStyle(
+                                      color: theme.textTheme.bodyMedium?.color,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    backgroundColor: theme.cardColor,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 6,
+                                    ),
+                                  ),
+                                  onPressed: () {},
+                                  child: Text(
+                                    'Share profile',
+                                    style: TextStyle(
+                                      color: theme.textTheme.bodyMedium?.color,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              OutlinedButton(
+                                style: OutlinedButton.styleFrom(
+                                  backgroundColor: theme.cardColor,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  minimumSize: const Size(40, 40),
+                                  padding: EdgeInsets.zero,
+                                ),
+                                onPressed: () {},
+                                child: Icon(
+                                  Icons.person_add_outlined,
+                                  color: theme.iconTheme.color,
+                                  size: 20,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    );
+                  },
+                ),
+              ),
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _SliverAppBarDelegate(
+                  TabBar(
+                    indicatorColor: theme.iconTheme.color,
+                    labelColor: theme.iconTheme.color,
+                    unselectedLabelColor: Colors.grey,
+                    tabs: const [
+                      Tab(icon: Icon(Icons.grid_on)),
+                      Tab(icon: Icon(Icons.video_library_outlined)),
                     ],
                   ),
                 ),
-
-                const SizedBox(height: 24),
-                Container(color: const Color(0xFFF1F5F9), height: 12),
-                const SizedBox(height: 16),
-
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  child: Text(
-                    'Privacy & Safety',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Color(0xFF8B5CF6),
-                    ),
+              ),
+            ];
+          },
+          body: TabBarView(
+            children: [
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('posts')
+                    .where('uploaderId', isEqualTo: user?.uid)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting)
+                    return const Center(child: CircularProgressIndicator());
+                  final posts = snapshot.data?.docs ?? [];
+                  if (posts.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: theme.primaryColor,
+                                width: 2,
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.camera_alt_outlined,
+                              size: 48,
+                              color: theme.primaryColor,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'No Posts Yet',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 22,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return GridView.builder(
+                    padding: const EdgeInsets.all(1),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 2,
+                          mainAxisSpacing: 2,
+                        ),
+                    itemCount: posts.length,
+                    itemBuilder: (context, index) {
+                      final data = posts[index].data() as Map<String, dynamic>;
+                      return Image.memory(
+                        base64Decode(data['imageBase64']),
+                        fit: BoxFit.cover,
+                      );
+                    },
+                  );
+                },
+              ),
+              const Center(
+                child: Text(
+                  'No Reels Yet',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
                   ),
                 ),
-                const SizedBox(height: 8),
-
-                SwitchListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                  title: const Text(
-                    'Private Account',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  subtitle: const Text(
-                    'Strangers will need to request to text you.',
-                  ),
-                  secondary: Icon(
-                    _isPrivate ? Icons.lock : Icons.lock_open,
-                    color: const Color(0xFF8B5CF6),
-                  ),
-                  value: _isPrivate,
-                  activeColor: const Color(0xFFF43F5E),
-                  onChanged: (val) => _togglePrivacy(val),
-                ),
-              ],
-            ),
-          );
-        },
+              ),
+            ],
+          ),
+        ),
       ),
     );
+  }
+}
+
+class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  _SliverAppBarDelegate(this._tabBar);
+
+  final TabBar _tabBar;
+
+  @override
+  double get minExtent => _tabBar.preferredSize.height;
+  @override
+  double get maxExtent => _tabBar.preferredSize.height;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: _tabBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
+    return false;
   }
 }
 
