@@ -316,19 +316,31 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   },
                 ),
               ListTile(
-                leading: const Icon(
-                  Icons.delete_outline,
-                  color: Colors.redAccent,
-                ),
-                title: const Text(
-                  'Unsend Message',
-                  style: TextStyle(color: Colors.redAccent),
-                ),
+                leading: const Icon(Icons.delete, color: Colors.grey),
+                title: const Text('Delete for me'),
                 onTap: () async {
                   Navigator.pop(context);
-                  await doc.reference.delete();
+                  final currentUser = ref.read(authServiceProvider).currentUser;
+                  await doc.reference.update({
+                    'deletedFor': FieldValue.arrayUnion([currentUser!.uid]),
+                  });
                 },
               ),
+              if (isMe)
+                ListTile(
+                  leading: const Icon(
+                    Icons.delete_outline,
+                    color: Colors.redAccent,
+                  ),
+                  title: const Text(
+                    'Delete for everyone',
+                    style: TextStyle(color: Colors.redAccent),
+                  ),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await doc.reference.delete();
+                  },
+                ),
               const SizedBox(height: 8),
             ],
           ),
@@ -895,6 +907,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   itemCount: msgs.length,
                   itemBuilder: (context, index) {
                     final data = msgs[index].data() as Map<String, dynamic>;
+                    if (data['deletedFor'] != null &&
+                        (data['deletedFor'] as List).contains(
+                          currentUser.uid,
+                        )) {
+                      return const SizedBox.shrink();
+                    }
                     bool isMe = data['senderId'] == currentUser.uid;
                     return _buildMessageBubble(msgs[index], isMe);
                   },
