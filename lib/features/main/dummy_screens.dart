@@ -428,8 +428,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                                 body: PageView.builder(
                                                   itemCount: myStories.length,
                                                   itemBuilder: (context, pageIndex) {
+                                                    // Reverse the order so the oldest active story plays first
                                                     final storyDoc =
-                                                        myStories[pageIndex];
+                                                        myStories[(myStories
+                                                                    .length -
+                                                                1) -
+                                                            pageIndex];
                                                     final base64String =
                                                         (storyDoc.data()
                                                             as Map<
@@ -449,34 +453,64 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                                         Positioned(
                                                           top: 50,
                                                           right: 16,
-                                                          child: IconButton(
-                                                            icon: const Icon(
-                                                              Icons
-                                                                  .delete_outline,
-                                                              color:
-                                                                  Colors.white,
-                                                              size: 32,
-                                                            ),
-                                                            onPressed: () async {
-                                                              await FirebaseFirestore
-                                                                  .instance
-                                                                  .collection(
-                                                                    'stories',
-                                                                  )
-                                                                  .doc(
-                                                                    storyDoc.id,
-                                                                  )
-                                                                  .delete();
-                                                              if (context
-                                                                      .mounted &&
-                                                                  myStories
-                                                                          .length ==
-                                                                      1) {
-                                                                Navigator.pop(
-                                                                  context,
-                                                                );
-                                                              }
-                                                            },
+                                                          child: Row(
+                                                            mainAxisSize:
+                                                                MainAxisSize
+                                                                    .min,
+                                                            children: [
+                                                              Text(
+                                                                "${pageIndex + 1} / ${myStories.length}",
+                                                                style: const TextStyle(
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontSize: 16,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  shadows: [
+                                                                    Shadow(
+                                                                      blurRadius:
+                                                                          4,
+                                                                      color: Colors
+                                                                          .black54,
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                              const SizedBox(
+                                                                width: 16,
+                                                              ),
+                                                              IconButton(
+                                                                icon: const Icon(
+                                                                  Icons
+                                                                      .delete_outline,
+                                                                  color: Colors
+                                                                      .white,
+                                                                  size: 32,
+                                                                ),
+                                                                onPressed: () async {
+                                                                  await FirebaseFirestore
+                                                                      .instance
+                                                                      .collection(
+                                                                        'stories',
+                                                                      )
+                                                                      .doc(
+                                                                        storyDoc
+                                                                            .id,
+                                                                      )
+                                                                      .delete();
+                                                                  if (context
+                                                                          .mounted &&
+                                                                      myStories
+                                                                              .length ==
+                                                                          1) {
+                                                                    Navigator.pop(
+                                                                      context,
+                                                                    );
+                                                                  }
+                                                                },
+                                                              ),
+                                                            ],
                                                           ),
                                                         ),
                                                       ],
