@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:image_picker/image_picker.dart' as image_picker;
 import '../profile/edit_profile_screen.dart';
 import 'create_modal.dart';
@@ -1289,12 +1290,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     ),
                                   ),
                                   onPressed: () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Profile link copied to clipboard! 📋',
-                                        ),
-                                      ),
+                                    final username =
+                                        userData?['username'] ??
+                                        user?.uid ??
+                                        'me';
+                                    Share.share(
+                                      'Connect with me on Aura Context-Aware Messenger! 🚀\n\nhttps://aura.app/@$username',
                                     );
                                   },
                                   child: Text(
