@@ -566,19 +566,27 @@ class SearchScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          crossAxisSpacing: 2,
-          mainAxisSpacing: 2,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.travel_explore,
+              size: 64,
+              color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Discover',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Global search and trending posts engine coming soon.',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
         ),
-        itemCount: 30,
-        itemBuilder: (context, index) {
-          return Container(
-            color: Colors.grey.withOpacity((index % 5) * 0.1 + 0.1),
-            child: const Icon(Icons.image, color: Colors.white54),
-          );
-        },
       ),
     );
   }
