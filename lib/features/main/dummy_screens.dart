@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart' as image_picker;
+import 'create_modal.dart';
 import '../../core/auth_service.dart';
 import '../../core/story_service.dart';
 import '../../core/post_service.dart';
@@ -339,6 +340,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24),
         ),
         actions: [
+          IconButton(
+            icon: Icon(
+              Icons.add_box_outlined,
+              color: Theme.of(context).iconTheme.color,
+            ),
+            onPressed: () => showGlobalCreateMenu(context, ref),
+          ),
           IconButton(
             icon: Icon(
               Icons.favorite_border,

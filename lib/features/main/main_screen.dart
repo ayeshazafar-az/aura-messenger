@@ -1,30 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'create_modal.dart';
 
-class MainScreen extends ConsumerWidget {
+class MainScreen extends StatelessWidget {
   final Widget child;
   const MainScreen({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     int currentIndex = _calculateSelectedIndex(context);
-    // Standardize index 2 as Create even if they are on an index > 2
-    int displayIndex = currentIndex > 4 ? 0 : currentIndex;
 
     return Scaffold(
       body: child,
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        currentIndex: displayIndex == 2 ? 0 : displayIndex,
-        onTap: (int idx) {
-          if (idx == 2) {
-            showGlobalCreateMenu(context, ref);
-          } else {
-            _onItemTapped(idx, context);
-          }
-        },
+        currentIndex: currentIndex,
+        onTap: (int idx) => _onItemTapped(idx, context),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
@@ -37,14 +27,14 @@ class MainScreen extends ConsumerWidget {
             label: 'Search',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.add_box_outlined),
-            activeIcon: Icon(Icons.add_box),
-            label: 'Create',
+            icon: Icon(Icons.chat_bubble_outline),
+            activeIcon: Icon(Icons.chat_bubble),
+            label: 'Chats',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.slow_motion_video_outlined),
-            activeIcon: Icon(Icons.slow_motion_video),
-            label: 'Reels',
+            icon: Icon(Icons.lock_outline),
+            activeIcon: Icon(Icons.lock),
+            label: 'Vaults',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
