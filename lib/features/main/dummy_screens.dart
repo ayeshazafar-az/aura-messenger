@@ -992,25 +992,39 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceEvenly,
                                   children: [
-                                    Column(
-                                      children: const [
-                                        Text(
-                                          '8',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 20,
-                                          ),
-                                        ),
-                                        Text(
-                                          'posts',
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                      ],
+                                    StreamBuilder<QuerySnapshot>(
+                                      stream: FirebaseFirestore.instance
+                                          .collection('posts')
+                                          .where(
+                                            'uploaderId',
+                                            isEqualTo: user?.uid,
+                                          )
+                                          .snapshots(),
+                                      builder: (context, snapshot) {
+                                        final postCount = snapshot.hasData
+                                            ? snapshot.data!.docs.length
+                                            : 0;
+                                        return Column(
+                                          children: [
+                                            Text(
+                                              postCount.toString(),
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 20,
+                                              ),
+                                            ),
+                                            const Text(
+                                              'posts',
+                                              style: TextStyle(fontSize: 14),
+                                            ),
+                                          ],
+                                        );
+                                      },
                                     ),
                                     Column(
                                       children: const [
                                         Text(
-                                          '43',
+                                          '0',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 20,
@@ -1025,7 +1039,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     Column(
                                       children: const [
                                         Text(
-                                          '45',
+                                          '0',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 20,
