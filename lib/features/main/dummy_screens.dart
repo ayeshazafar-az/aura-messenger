@@ -375,61 +375,141 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   );
                 }
 
-                final stories = snapshot.data?.docs ?? [];
+                final allStories = snapshot.data?.docs ?? [];
+                final user = ref.read(authServiceProvider).currentUser;
+                final myStoryIndex = allStories.indexWhere(
+                  (doc) =>
+                      (doc.data() as Map<String, dynamic>)['uploaderId'] ==
+                      user?.uid,
+                );
+                final myStory = myStoryIndex != -1
+                    ? allStories[myStoryIndex]
+                    : null;
+                final otherStories = allStories
+                    .where(
+                      (doc) =>
+                          (doc.data() as Map<String, dynamic>)['uploaderId'] !=
+                          user?.uid,
+                    )
+                    .toList();
 
                 return Container(
                   height: 120,
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    itemCount: stories.length + 1,
+                    itemCount: otherStories.length + 1,
                     itemBuilder: (context, index) {
                       if (index == 0) {
                         return GestureDetector(
-                          onTap: _showCreateMenu,
+                          onTap: myStory != null
+                              ? () {
+                                  final base64String =
+                                      (myStory.data()
+                                          as Map<
+                                            String,
+                                            dynamic
+                                          >)['imageBase64'];
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => Scaffold(
+                                      backgroundColor: Colors.black,
+                                      appBar: AppBar(
+                                        backgroundColor: Colors.black,
+                                        elevation: 0,
+                                        iconTheme: const IconThemeData(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      body: Center(
+                                        child: Image.memory(
+                                          base64Decode(base64String),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }
+                              : _showCreateMenu,
                           child: Container(
                             width: 80,
                             margin: const EdgeInsets.symmetric(horizontal: 4),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Stack(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 32,
-                                      backgroundColor: Theme.of(
-                                        context,
-                                      ).primaryColor.withOpacity(0.1),
-                                      child: Icon(
-                                        Icons.person,
-                                        color: Theme.of(context).primaryColor,
-                                        size: 34,
-                                      ),
-                                    ),
-                                    Positioned(
-                                      bottom: 0,
-                                      right: 0,
-                                      child: Container(
-                                        padding: const EdgeInsets.all(2),
-                                        decoration: BoxDecoration(
+                                if (myStory == null)
+                                  Stack(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 32,
+                                        backgroundColor: Theme.of(
+                                          context,
+                                        ).primaryColor.withOpacity(0.1),
+                                        child: Icon(
+                                          Icons.person,
                                           color: Theme.of(context).primaryColor,
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
+                                          size: 34,
+                                        ),
+                                      ),
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(2),
+                                          decoration: BoxDecoration(
                                             color: Theme.of(
                                               context,
-                                            ).scaffoldBackgroundColor,
-                                            width: 2,
+                                            ).primaryColor,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: Theme.of(
+                                                context,
+                                              ).scaffoldBackgroundColor,
+                                              width: 2,
+                                            ),
+                                          ),
+                                          child: const Icon(
+                                            Icons.add,
+                                            color: Colors.white,
+                                            size: 16,
                                           ),
                                         ),
-                                        child: const Icon(
-                                          Icons.add,
-                                          color: Colors.white,
-                                          size: 16,
+                                      ),
+                                    ],
+                                  )
+                                else
+                                  Container(
+                                    padding: const EdgeInsets.all(3),
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Color(0xFF8B5CF6),
+                                          Color(0xFFF43F5E),
+                                        ],
+                                      ),
+                                    ),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Theme.of(
+                                          context,
+                                        ).scaffoldBackgroundColor,
+                                      ),
+                                      child: CircleAvatar(
+                                        radius: 28,
+                                        backgroundImage: MemoryImage(
+                                          base64Decode(
+                                            (myStory.data()
+                                                as Map<
+                                                  String,
+                                                  dynamic
+                                                >)['imageBase64'],
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ],
-                                ),
+                                  ),
                                 const SizedBox(height: 6),
                                 const Text(
                                   'Your Story',
@@ -445,7 +525,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       }
 
                       final data =
-                          stories[index - 1].data() as Map<String, dynamic>;
+                          otherStories[index - 1].data()
+                              as Map<String, dynamic>;
                       final base64String = data['imageBase64'];
                       final uploaderId = data['uploaderId']
                           .toString()
