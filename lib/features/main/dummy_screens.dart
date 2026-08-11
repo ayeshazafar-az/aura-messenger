@@ -427,23 +427,61 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                                 extendBodyBehindAppBar: true,
                                                 body: PageView.builder(
                                                   itemCount: myStories.length,
-                                                  itemBuilder:
-                                                      (context, pageIndex) {
-                                                        final base64String =
-                                                            (myStories[pageIndex]
-                                                                    .data()
-                                                                as Map<
-                                                                  String,
-                                                                  dynamic
-                                                                >)['imageBase64'];
-                                                        return Center(
+                                                  itemBuilder: (context, pageIndex) {
+                                                    final storyDoc =
+                                                        myStories[pageIndex];
+                                                    final base64String =
+                                                        (storyDoc.data()
+                                                            as Map<
+                                                              String,
+                                                              dynamic
+                                                            >)['imageBase64'];
+                                                    return Stack(
+                                                      fit: StackFit.expand,
+                                                      children: [
+                                                        Center(
                                                           child: Image.memory(
                                                             base64Decode(
                                                               base64String,
                                                             ),
                                                           ),
-                                                        );
-                                                      },
+                                                        ),
+                                                        Positioned(
+                                                          top: 50,
+                                                          right: 16,
+                                                          child: IconButton(
+                                                            icon: const Icon(
+                                                              Icons
+                                                                  .delete_outline,
+                                                              color:
+                                                                  Colors.white,
+                                                              size: 32,
+                                                            ),
+                                                            onPressed: () async {
+                                                              await FirebaseFirestore
+                                                                  .instance
+                                                                  .collection(
+                                                                    'stories',
+                                                                  )
+                                                                  .doc(
+                                                                    storyDoc.id,
+                                                                  )
+                                                                  .delete();
+                                                              if (context
+                                                                      .mounted &&
+                                                                  myStories
+                                                                          .length ==
+                                                                      1) {
+                                                                Navigator.pop(
+                                                                  context,
+                                                                );
+                                                              }
+                                                            },
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
                                                 ),
                                               ),
                                             );
