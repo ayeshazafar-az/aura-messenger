@@ -775,6 +775,85 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     });
   }
 
+  void _showEditProfileSheet(Map<String, dynamic>? userData) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Edit Profile',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              const Divider(height: 32),
+              ListTile(
+                leading: const Icon(Icons.person),
+                title: const Text('Change Name'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _updateField('Name', 'name', userData?['name'] ?? '');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: const Text('Change Bio'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _updateField('Bio', 'bio', userData?['bio'] ?? '');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Update Profile Picture'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _updateProfilePicture();
+                },
+              ),
+              ListTile(
+                leading: Icon(_isPrivate ? Icons.lock : Icons.lock_open),
+                title: Text(
+                  _isPrivate ? 'Make Account Public' : 'Make Account Private',
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _togglePrivacy(!_isPrivate);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        !_isPrivate
+                            ? 'Account is now Private 🔒'
+                            : 'Account is now Public 🌍',
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildProfileAvatar(Map<String, dynamic>? data) {
     return Center(
       child: Stack(
@@ -1088,7 +1167,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                       vertical: 6,
                                     ),
                                   ),
-                                  onPressed: () {},
+                                  onPressed: () =>
+                                      _showEditProfileSheet(userData),
                                   child: Text(
                                     'Edit profile',
                                     style: TextStyle(
@@ -1110,7 +1190,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                       vertical: 6,
                                     ),
                                   ),
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Profile link copied to clipboard! 📋',
+                                        ),
+                                      ),
+                                    );
+                                  },
                                   child: Text(
                                     'Share profile',
                                     style: TextStyle(
