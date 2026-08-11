@@ -88,13 +88,23 @@ class HubScreen extends ConsumerWidget {
                                   ),
                                   const SizedBox(height: 6),
                                   Text(
-                                    u['username'] ??
+                                    u['name'] ??
+                                        u['username'] ??
                                         u['email'].toString().split('@')[0],
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 1,
                                     style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    '@${u['username'] ?? u['email'].toString().split('@')[0]}',
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey,
                                     ),
                                   ),
                                 ],
@@ -227,24 +237,46 @@ class HubScreen extends ConsumerWidget {
                                         : null,
                                   ),
                                   title: Text(
-                                    '@${user['username'] ?? user['email'].toString().split('@')[0]}',
+                                    user['name'] != null &&
+                                            user['name'].toString().isNotEmpty
+                                        ? user['name']
+                                        : (user['username'] ??
+                                              user['email'].toString().split(
+                                                '@',
+                                              )[0]),
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18,
                                     ),
                                   ),
-                                  subtitle: Text(
-                                    isPrivate
-                                        ? 'Private Account'
-                                        : 'Tap to open secure chat',
-                                    style: TextStyle(
-                                      color: isPrivate
-                                          ? Colors.redAccent
-                                          : Colors.black54,
-                                      fontStyle: isPrivate
-                                          ? FontStyle.italic
-                                          : FontStyle.normal,
-                                    ),
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '@${user['username'] ?? user['email'].toString().split('@')[0]}',
+                                        style: const TextStyle(
+                                          color: Colors.black54,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        isPrivate
+                                            ? 'Private Account'
+                                            : 'Tap to open secure chat',
+                                        style: TextStyle(
+                                          color: isPrivate
+                                              ? Colors.redAccent
+                                              : Colors.grey,
+                                          fontStyle: isPrivate
+                                              ? FontStyle.italic
+                                              : FontStyle.normal,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                   trailing: Container(
                                     padding: const EdgeInsets.all(8),

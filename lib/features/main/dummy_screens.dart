@@ -458,31 +458,143 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                                                 MainAxisSize
                                                                     .min,
                                                             children: [
-                                                              const Icon(
-                                                                Icons
-                                                                    .visibility,
-                                                                color: Colors
-                                                                    .white,
-                                                                size: 24,
-                                                              ),
-                                                              const SizedBox(
-                                                                width: 6,
-                                                              ),
-                                                              Text(
-                                                                "${(storyDoc.data() as Map<String, dynamic>)['viewers']?.length ?? 0}",
-                                                                style: const TextStyle(
-                                                                  color: Colors
-                                                                      .white,
-                                                                  fontSize: 16,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  shadows: [
-                                                                    Shadow(
-                                                                      blurRadius:
-                                                                          4,
+                                                              GestureDetector(
+                                                                onTap: () {
+                                                                  final viewers = List<String>.from(
+                                                                    (storyDoc.data()
+                                                                            as Map<
+                                                                              String,
+                                                                              dynamic
+                                                                            >)['viewers'] ??
+                                                                        [],
+                                                                  );
+                                                                  if (viewers
+                                                                      .isEmpty)
+                                                                    return;
+                                                                  showModalBottomSheet(
+                                                                    context:
+                                                                        context,
+                                                                    backgroundColor:
+                                                                        Theme.of(
+                                                                          context,
+                                                                        ).scaffoldBackgroundColor,
+                                                                    shape: const RoundedRectangleBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.vertical(
+                                                                            top: Radius.circular(
+                                                                              20,
+                                                                            ),
+                                                                          ),
+                                                                    ),
+                                                                    builder: (context) => ListView.builder(
+                                                                      padding:
+                                                                          const EdgeInsets.all(
+                                                                            16,
+                                                                          ),
+                                                                      itemCount:
+                                                                          viewers
+                                                                              .length,
+                                                                      itemBuilder:
+                                                                          (
+                                                                            context,
+                                                                            idx,
+                                                                          ) =>
+                                                                              FutureBuilder<
+                                                                                DocumentSnapshot
+                                                                              >(
+                                                                                future: FirebaseFirestore.instance
+                                                                                    .collection(
+                                                                                      'users',
+                                                                                    )
+                                                                                    .doc(
+                                                                                      viewers[idx],
+                                                                                    )
+                                                                                    .get(),
+                                                                                builder:
+                                                                                    (
+                                                                                      context,
+                                                                                      userSnap,
+                                                                                    ) {
+                                                                                      if (!userSnap.hasData)
+                                                                                        return const ListTile(
+                                                                                          title: Text(
+                                                                                            'Loading...',
+                                                                                          ),
+                                                                                        );
+                                                                                      final u =
+                                                                                          userSnap.data!.data()
+                                                                                              as Map<
+                                                                                                String,
+                                                                                                dynamic
+                                                                                              >;
+                                                                                      final name =
+                                                                                          u['name'] ??
+                                                                                          u['username'] ??
+                                                                                          u['email'].toString().split(
+                                                                                            '@',
+                                                                                          )[0];
+                                                                                      final handle =
+                                                                                          u['username'] ??
+                                                                                          u['email'].toString().split(
+                                                                                            '@',
+                                                                                          )[0];
+                                                                                      return ListTile(
+                                                                                        leading: CircleAvatar(
+                                                                                          backgroundImage:
+                                                                                              u['profileBase64'] !=
+                                                                                                  null
+                                                                                              ? MemoryImage(
+                                                                                                  base64Decode(
+                                                                                                    u['profileBase64'],
+                                                                                                  ),
+                                                                                                )
+                                                                                              : null,
+                                                                                        ),
+                                                                                        title: Text(
+                                                                                          name,
+                                                                                          style: const TextStyle(
+                                                                                            fontWeight: FontWeight.bold,
+                                                                                          ),
+                                                                                        ),
+                                                                                        subtitle: Text(
+                                                                                          '@$handle',
+                                                                                        ),
+                                                                                      );
+                                                                                    },
+                                                                              ),
+                                                                    ),
+                                                                  );
+                                                                },
+                                                                child: Row(
+                                                                  children: [
+                                                                    const Icon(
+                                                                      Icons
+                                                                          .visibility,
                                                                       color: Colors
-                                                                          .black54,
+                                                                          .white,
+                                                                      size: 24,
+                                                                    ),
+                                                                    const SizedBox(
+                                                                      width: 6,
+                                                                    ),
+                                                                    Text(
+                                                                      "${(storyDoc.data() as Map<String, dynamic>)['viewers']?.length ?? 0}",
+                                                                      style: const TextStyle(
+                                                                        color: Colors
+                                                                            .white,
+                                                                        fontSize:
+                                                                            16,
+                                                                        fontWeight:
+                                                                            FontWeight.bold,
+                                                                        shadows: [
+                                                                          Shadow(
+                                                                            blurRadius:
+                                                                                4,
+                                                                            color:
+                                                                                Colors.black54,
+                                                                          ),
+                                                                        ],
+                                                                      ),
                                                                     ),
                                                                   ],
                                                                 ),
@@ -674,8 +786,74 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   color: Colors.white,
                                 ),
                               ),
-                              body: Center(
-                                child: Image.memory(base64Decode(base64String)),
+                              body: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  Center(
+                                    child: Image.memory(
+                                      base64Decode(base64String),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 16,
+                                    left: 16,
+                                    child: FutureBuilder<DocumentSnapshot>(
+                                      future: FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(data['uploaderId'])
+                                          .get(),
+                                      builder: (context, userSnap) {
+                                        if (!userSnap.hasData)
+                                          return const SizedBox.shrink();
+                                        final u =
+                                            userSnap.data!.data()
+                                                as Map<String, dynamic>?;
+                                        if (u == null)
+                                          return const SizedBox.shrink();
+                                        final name =
+                                            u['name'] ??
+                                            u['username'] ??
+                                            'User';
+                                        return Row(
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 20,
+                                              backgroundImage:
+                                                  u['profileBase64'] != null
+                                                  ? MemoryImage(
+                                                      base64Decode(
+                                                        u['profileBase64'],
+                                                      ),
+                                                    )
+                                                  : null,
+                                              child: u['profileBase64'] == null
+                                                  ? const Icon(
+                                                      Icons.person,
+                                                      color: Colors.white,
+                                                    )
+                                                  : null,
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Text(
+                                              name,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                                shadows: [
+                                                  Shadow(
+                                                    blurRadius: 4,
+                                                    color: Colors.black54,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           );
