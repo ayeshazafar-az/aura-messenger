@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart' as image_picker;
+import '../profile/edit_profile_screen.dart';
 import 'create_modal.dart';
 import '../../core/auth_service.dart';
 import '../../core/story_service.dart';
@@ -1167,8 +1168,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                       vertical: 6,
                                     ),
                                   ),
-                                  onPressed: () =>
-                                      _showEditProfileSheet(userData),
+                                  onPressed: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => EditProfileScreen(
+                                        initialUserData: userData,
+                                      ),
+                                    ),
+                                  ),
                                   child: Text(
                                     'Edit profile',
                                     style: TextStyle(
