@@ -340,16 +340,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_box_outlined, color: Colors.black87),
-            onPressed: _showCreateMenu,
-          ),
-          IconButton(
-            icon: const Icon(Icons.favorite_border, color: Colors.black87),
+            icon: Icon(
+              Icons.favorite_border,
+              color: Theme.of(context).iconTheme.color,
+            ),
             onPressed: () {},
           ),
           IconButton(
-            icon: const Icon(Icons.send, color: Colors.black87),
-            onPressed: () {},
+            icon: Icon(Icons.send, color: Theme.of(context).iconTheme.color),
+            onPressed: () => context.push('/hub'),
           ),
         ],
       ),
