@@ -2011,40 +2011,60 @@ class _AppearanceSettingsScreenState
           ),
           ListTile(
             leading: const CircleAvatar(
-              backgroundColor: Color(0xFFF43F5E),
+              backgroundColor: Colors.pinkAccent,
               radius: 12,
             ),
-            title: const Text('Rose Pink'),
+            title: const Text('Hot Pink'),
             trailing: _accentColor == 2
-                ? const Icon(Icons.check, color: Color(0xFFF43F5E))
+                ? const Icon(Icons.check, color: Colors.pinkAccent)
                 : null,
             onTap: () {
               setState(() => _accentColor = 2);
               ref
                   .read(themeProvider.notifier)
                   .setCustomTheme(
-                    const Color(0xFFF43F5E),
-                    const Color(0xFF8B5CF6),
+                    Colors.pinkAccent,
+                    Colors.orangeAccent,
                     _themeMode == 2,
                   );
             },
           ),
           ListTile(
             leading: const CircleAvatar(
-              backgroundColor: Colors.teal,
+              backgroundColor: Colors.deepPurple,
               radius: 12,
             ),
-            title: const Text('Emerald Teal'),
+            title: const Text('Deep Purple'),
             trailing: _accentColor == 3
-                ? const Icon(Icons.check, color: Colors.teal)
+                ? const Icon(Icons.check, color: Colors.deepPurple)
                 : null,
             onTap: () {
               setState(() => _accentColor = 3);
               ref
                   .read(themeProvider.notifier)
                   .setCustomTheme(
-                    Colors.teal,
-                    Colors.tealAccent,
+                    Colors.deepPurple,
+                    Colors.pinkAccent,
+                    _themeMode == 2,
+                  );
+            },
+          ),
+          ListTile(
+            leading: const CircleAvatar(
+              backgroundColor: Color(0xFF2563EB), // Cyber Blue
+              radius: 12,
+            ),
+            title: const Text('Cyber Blue'),
+            trailing: _accentColor == 4
+                ? const Icon(Icons.check, color: Color(0xFF2563EB))
+                : null,
+            onTap: () {
+              setState(() => _accentColor = 4);
+              ref
+                  .read(themeProvider.notifier)
+                  .setCustomTheme(
+                    const Color(0xFF2563EB),
+                    const Color(0xFF38BDF8),
                     _themeMode == 2,
                   );
             },
