@@ -17,7 +17,12 @@ class EditProfileScreen extends ConsumerStatefulWidget {
 
 class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   late TextEditingController _nameController;
+  late TextEditingController _usernameController;
   late TextEditingController _bioController;
+  late TextEditingController _fbController;
+  late TextEditingController _instaController;
+  late TextEditingController _waController;
+
   bool _isPrivate = false;
   String? _profileBase64;
   bool _isLoading = false;
@@ -28,8 +33,20 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _nameController = TextEditingController(
       text: widget.initialUserData?['name'] ?? '',
     );
+    _usernameController = TextEditingController(
+      text: widget.initialUserData?['username'] ?? '',
+    );
     _bioController = TextEditingController(
       text: widget.initialUserData?['bio'] ?? '',
+    );
+    _fbController = TextEditingController(
+      text: widget.initialUserData?['facebookUrl'] ?? '',
+    );
+    _instaController = TextEditingController(
+      text: widget.initialUserData?['instagramUrl'] ?? '',
+    );
+    _waController = TextEditingController(
+      text: widget.initialUserData?['whatsappUrl'] ?? '',
     );
     _isPrivate = widget.initialUserData?['isPrivate'] ?? false;
     _profileBase64 = widget.initialUserData?['profileBase64'];
@@ -38,7 +55,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _usernameController.dispose();
     _bioController.dispose();
+    _fbController.dispose();
+    _instaController.dispose();
+    _waController.dispose();
     super.dispose();
   }
 
@@ -68,7 +89,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
     await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
       'name': _nameController.text.trim(),
+      'username': _usernameController.text.trim(),
       'bio': _bioController.text.trim(),
+      'facebookUrl': _fbController.text.trim(),
+      'instagramUrl': _instaController.text.trim(),
+      'whatsappUrl': _waController.text.trim(),
       'isPrivate': _isPrivate,
       if (_profileBase64 != null) 'profileBase64': _profileBase64,
     });
@@ -166,7 +191,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _usernameController,
+              decoration: const InputDecoration(
+                labelText: 'Username',
+                border: OutlineInputBorder(),
+                prefixText: '@ ',
+              ),
+            ),
+            const SizedBox(height: 16),
             TextField(
               controller: _bioController,
               decoration: const InputDecoration(
@@ -174,6 +208,41 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 border: OutlineInputBorder(),
               ),
               maxLines: 3,
+            ),
+            const SizedBox(height: 24),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Social Links',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _fbController,
+              decoration: const InputDecoration(
+                labelText: 'Facebook Link',
+                prefixIcon: Icon(Icons.facebook),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _instaController,
+              decoration: const InputDecoration(
+                labelText: 'Instagram Link',
+                prefixIcon: Icon(Icons.camera_alt),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _waController,
+              decoration: const InputDecoration(
+                labelText: 'WhatsApp Link',
+                prefixIcon: Icon(Icons.chat),
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 24),
             SwitchListTile(

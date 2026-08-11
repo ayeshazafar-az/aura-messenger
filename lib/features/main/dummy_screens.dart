@@ -1073,6 +1073,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                       fontSize: 13,
                                     ),
                                   ),
+                                  if (userData?['username'] != null &&
+                                      userData!['username']
+                                          .toString()
+                                          .isNotEmpty)
+                                    Text(
+                                      '@${userData['username']}',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
                                 ],
                               ),
                               Expanded(
@@ -1152,6 +1163,86 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             style: const TextStyle(fontSize: 14, height: 1.4),
                           ),
                         ),
+                        if (userData != null &&
+                            ((userData['facebookUrl'] != null &&
+                                    userData['facebookUrl']
+                                        .toString()
+                                        .isNotEmpty) ||
+                                (userData['instagramUrl'] != null &&
+                                    userData['instagramUrl']
+                                        .toString()
+                                        .isNotEmpty) ||
+                                (userData['whatsappUrl'] != null &&
+                                    userData['whatsappUrl']
+                                        .toString()
+                                        .isNotEmpty)))
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                              top: 12,
+                            ),
+                            child: Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                if (userData['facebookUrl'] != null &&
+                                    userData['facebookUrl']
+                                        .toString()
+                                        .isNotEmpty)
+                                  ActionChip(
+                                    avatar: const Icon(
+                                      Icons.facebook,
+                                      size: 16,
+                                      color: Colors.blue,
+                                    ),
+                                    label: const Text(
+                                      'Facebook',
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                    onPressed: () {},
+                                    padding: EdgeInsets.zero,
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                                if (userData['instagramUrl'] != null &&
+                                    userData['instagramUrl']
+                                        .toString()
+                                        .isNotEmpty)
+                                  ActionChip(
+                                    avatar: const Icon(
+                                      Icons.camera_alt,
+                                      size: 16,
+                                      color: Colors.pink,
+                                    ),
+                                    label: const Text(
+                                      'Instagram',
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                    onPressed: () {},
+                                    padding: EdgeInsets.zero,
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                                if (userData['whatsappUrl'] != null &&
+                                    userData['whatsappUrl']
+                                        .toString()
+                                        .isNotEmpty)
+                                  ActionChip(
+                                    avatar: const Icon(
+                                      Icons.chat,
+                                      size: 16,
+                                      color: Colors.green,
+                                    ),
+                                    label: const Text(
+                                      'WhatsApp',
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                    onPressed: () {},
+                                    padding: EdgeInsets.zero,
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                              ],
+                            ),
+                          ),
                         const SizedBox(height: 24),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
