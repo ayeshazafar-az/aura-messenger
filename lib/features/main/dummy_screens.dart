@@ -1454,7 +1454,76 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               ],
                             ),
                           ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 16),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Row(
+                            children: [
+                              const Text(
+                                'Theme:',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              ...[
+                                {
+                                  'p': const Color(0xFF8B5CF6),
+                                  's': const Color(0xFFF43F5E),
+                                },
+                                {
+                                  'p': Colors.pinkAccent,
+                                  's': Colors.orangeAccent,
+                                },
+                                {
+                                  'p': const Color(0xFF2563EB),
+                                  's': const Color(0xFF38BDF8),
+                                },
+                                {
+                                  'p': const Color(0xFF10B981),
+                                  's': const Color(0xFF34D399),
+                                },
+                              ].map(
+                                (c) => GestureDetector(
+                                  onTap: () {
+                                    ref
+                                        .read(themeProvider.notifier)
+                                        .setCustomTheme(
+                                          c['p'] as Color,
+                                          c['s'] as Color,
+                                          Theme.of(context).brightness ==
+                                              Brightness.dark,
+                                        );
+                                  },
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                    ),
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: c['p'] as Color,
+                                      border: Border.all(
+                                        color: theme.scaffoldBackgroundColor,
+                                        width: 2,
+                                      ),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Colors.black12,
+                                          blurRadius: 2,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Row(
