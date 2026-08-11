@@ -451,13 +451,45 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                                           ),
                                                         ),
                                                         Positioned(
-                                                          top: 50,
+                                                          bottom: 40,
                                                           right: 16,
                                                           child: Row(
                                                             mainAxisSize:
                                                                 MainAxisSize
                                                                     .min,
                                                             children: [
+                                                              const Icon(
+                                                                Icons
+                                                                    .visibility,
+                                                                color: Colors
+                                                                    .white,
+                                                                size: 24,
+                                                              ),
+                                                              const SizedBox(
+                                                                width: 6,
+                                                              ),
+                                                              Text(
+                                                                "${(storyDoc.data() as Map<String, dynamic>)['viewers']?.length ?? 0}",
+                                                                style: const TextStyle(
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontSize: 16,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  shadows: [
+                                                                    Shadow(
+                                                                      blurRadius:
+                                                                          4,
+                                                                      color: Colors
+                                                                          .black54,
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                              const SizedBox(
+                                                                width: 16,
+                                                              ),
                                                               Text(
                                                                 "${pageIndex + 1} / ${myStories.length}",
                                                                 style: const TextStyle(
@@ -616,9 +648,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       final uploaderId = data['uploaderId']
                           .toString()
                           .substring(0, 5);
+                      final storyId = otherStories[index - 1].id;
 
                       return GestureDetector(
-                        onTap: () {
+                        onTap: () async {
+                          if (user?.uid != null) {
+                            await FirebaseFirestore.instance
+                                .collection('stories')
+                                .doc(storyId)
+                                .update({
+                                  'viewers': FieldValue.arrayUnion([user!.uid]),
+                                })
+                                .catchError((_) => null);
+                          }
+                          if (!context.mounted) return;
+
                           showDialog(
                             context: context,
                             builder: (context) => Scaffold(
