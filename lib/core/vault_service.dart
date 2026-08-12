@@ -19,7 +19,7 @@ class VaultService {
   Future<bool> verifyPin(String uid, String inputPin) async {
     final doc = await _firestore.collection('users').doc(uid).get();
     if (!doc.exists) return false;
-    final data = doc.data() as Map<String, dynamic>?;
+    final data = doc.data();
     if (data == null || data['vaultPin'] == null) return false;
     return data['vaultPin'] == inputPin;
   }
@@ -27,7 +27,7 @@ class VaultService {
   Future<bool> hasPinSetup(String uid) async {
     final doc = await _firestore.collection('users').doc(uid).get();
     if (!doc.exists) return false;
-    final data = doc.data() as Map<String, dynamic>?;
+    final data = doc.data();
     return data != null && data['vaultPin'] != null;
   }
 
