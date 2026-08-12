@@ -26,9 +26,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final picker = image_picker.ImagePicker();
     final xFile = await picker.pickImage(
       source: image_picker.ImageSource.gallery,
-      imageQuality: 50,
-      maxWidth: 800,
-      maxHeight: 800,
     );
     if (xFile == null) return;
 
@@ -49,9 +46,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final picker = image_picker.ImagePicker();
     final xFile = await picker.pickImage(
       source: image_picker.ImageSource.gallery,
-      imageQuality: 50,
-      maxWidth: 600,
-      maxHeight: 600,
     );
     if (xFile == null) return;
 
