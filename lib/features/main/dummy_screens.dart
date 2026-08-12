@@ -12,6 +12,8 @@ import '../../core/auth_service.dart';
 import '../../core/story_service.dart';
 import '../../core/post_service.dart';
 import '../../core/theme_provider.dart';
+import '../../core/vault_service.dart';
+import '../vaults/vault_details_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -1081,21 +1083,18 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 }
 
-class VaultsScreen extends StatefulWidget {
+class VaultsScreen extends ConsumerStatefulWidget {
   const VaultsScreen({super.key});
   @override
-  State<VaultsScreen> createState() => _VaultsScreenState();
+  ConsumerState<VaultsScreen> createState() => _VaultsScreenState();
 }
 
-class _VaultsScreenState extends State<VaultsScreen> {
-  final List<String> _vaults = [
-    'Classified intel',
-    'Financials 2026',
-    'Design Tokens',
-    'Private Passwords',
-  ];
+class _VaultsScreenState extends ConsumerState<VaultsScreen> {
+  final TextEditingController _setupPinController = TextEditingController();
 
-  void _showPinGate(String title) {
+  void _showPinGate(String vaultId, String title) {
+    String currentPin = '';
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1104,170 +1103,439 @@ class _VaultsScreenState extends State<VaultsScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.8,
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              const Icon(Icons.lock, color: Colors.white, size: 60),
-              const SizedBox(height: 16),
-              Text(
-                'Decrypting $title',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Enter 4-Digit Security PIN',
-                style: TextStyle(color: Colors.grey),
-              ),
-              const Spacer(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  4,
-                  (index) => Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 12),
-                    width: 20,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.grey.shade700, width: 2),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            void onNumberPress(int number) async {
+              if (currentPin.length < 4) {
+                setState(() => currentPin += number.toString());
+                if (currentPin.length == 4) {
+                  final user = ref.read(authServiceProvider).currentUser;
+                  if (user != null) {
+                    bool isValid = await ref
+                        .read(vaultServiceProvider)
+                        .verifyPin(user.uid, currentPin);
+                    if (isValid) {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => VaultDetailsScreen(
+                            vaultId: vaultId,
+                            vaultName: title,
+                          ),
+                        ),
+                      );
+                    } else {
+                      setState(() => currentPin = ''); // Reset
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Invalid Security PIN',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      );
+                    }
+                  }
+                }
+              }
+            }
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.8,
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  const Icon(Icons.lock, color: Colors.white, size: 60),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Decrypting $title',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      fontFamily: 'Roboto',
                     ),
                   ),
-                ),
-              ),
-              const Spacer(),
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 1.5,
-                ),
-                itemCount: 12,
-                itemBuilder: (context, index) {
-                  if (index == 9) return const SizedBox.shrink();
-                  if (index == 11) {
-                    return IconButton(
-                      icon: const Icon(Icons.backspace, color: Colors.white),
-                      onPressed: () {},
-                    );
-                  }
-                  final number = index == 10 ? 0 : index + 1;
-                  return InkWell(
-                    onTap: () {},
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white12,
-                      ),
-                      child: Center(
-                        child: Text(
-                          '$number',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Enter 4-Digit Security PIN',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontFamily: 'Roboto',
+                      fontSize: 14,
+                    ),
+                  ),
+                  const Spacer(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      4,
+                      (index) => Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 12),
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: index < currentPin.length
+                              ? Colors.white
+                              : Colors.transparent,
+                          border: Border.all(
+                            color: index < currentPin.length
+                                ? Colors.white
+                                : Colors.grey.shade700,
+                            width: 2,
                           ),
                         ),
                       ),
                     ),
-                  );
-                },
+                  ),
+                  const Spacer(),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
+                          childAspectRatio: 1.5,
+                        ),
+                    itemCount: 12,
+                    itemBuilder: (context, index) {
+                      if (index == 9) return const SizedBox.shrink();
+                      if (index == 11) {
+                        return IconButton(
+                          icon: const Icon(
+                            Icons.backspace,
+                            color: Colors.white,
+                          ),
+                          onPressed: () {
+                            if (currentPin.isNotEmpty) {
+                              setState(
+                                () => currentPin = currentPin.substring(
+                                  0,
+                                  currentPin.length - 1,
+                                ),
+                              );
+                            }
+                          },
+                        );
+                      }
+                      final number = index == 10 ? 0 : index + 1;
+                      return InkWell(
+                        onTap: () => onNumberPress(number),
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white12,
+                          ),
+                          child: Center(
+                            child: Text(
+                              '$number',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Roboto',
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 40),
+                ],
               ),
-              const SizedBox(height: 40),
-            ],
-          ),
+            );
+          },
         );
       },
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
+  void _showSetupPinModal() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1B1B1E),
         title: const Text(
-          'Active Vaults',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24),
+          'Setup Vault Security',
+          style: TextStyle(
+            color: Colors.white,
+            fontFamily: 'Roboto',
+            fontWeight: FontWeight.w800,
+          ),
         ),
-        elevation: 0,
-        actions: [
-          IconButton(icon: const Icon(Icons.add_moderator), onPressed: () {}),
-        ],
-      ),
-      body: GridView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _vaults.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 0.85,
-        ),
-        itemBuilder: (context, index) {
-          final title = _vaults[index];
-          return GestureDetector(
-            onTap: () => _showPinGate(title),
-            child: Container(
-              decoration: BoxDecoration(
-                color: theme.cardColor,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                  ),
-                ],
-                border: Border.all(
-                  color: theme.primaryColor.withOpacity(0.3),
-                  width: 1,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Create a 4-Digit Master PIN to securely encrypt your localized Vaults ecosystem.',
+              style: TextStyle(color: Colors.white70, fontFamily: 'Roboto'),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _setupPinController,
+              keyboardType: TextInputType.number,
+              maxLength: 4,
+              obscureText: true,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                letterSpacing: 10,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+              decoration: const InputDecoration(
+                counterText: '',
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white24),
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: theme.primaryColor.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.enhanced_encryption,
-                      size: 40,
-                      color: theme.primaryColor,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Encrypted',
-                    style: TextStyle(
-                      color: Colors.redAccent,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
             ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF8B5CF6),
+            ),
+            onPressed: () async {
+              if (_setupPinController.text.length == 4) {
+                final user = ref.read(authServiceProvider).currentUser;
+                if (user != null) {
+                  await ref
+                      .read(vaultServiceProvider)
+                      .setupMasterPin(user.uid, _setupPinController.text);
+                  Navigator.pop(context);
+                  setState(() {}); // Refresh Stream
+                }
+              }
+            },
+            child: const Text(
+              'Secure Vault',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentUser = ref.watch(authServiceProvider).currentUser;
+    if (currentUser == null)
+      return const Scaffold(backgroundColor: Colors.black);
+
+    return Scaffold(
+      backgroundColor: const Color(0xFF0F0F12),
+      appBar: AppBar(
+        title: const Text(
+          'Encrypted Vaults',
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 26,
+            color: Colors.white,
+            letterSpacing: -0.5,
+            fontFamily: 'Roboto',
+          ),
+        ),
+        backgroundColor: const Color(0xFF0F0F12),
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add_circle, color: Colors.white, size: 28),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  final TextEditingController nameController =
+                      TextEditingController();
+                  return AlertDialog(
+                    backgroundColor: const Color(0xFF1B1B1E),
+                    title: const Text(
+                      'New Vault',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    content: TextField(
+                      controller: nameController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        hintText: 'Vault Name',
+                        hintStyle: TextStyle(color: Colors.white54),
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (nameController.text.isNotEmpty) {
+                            await ref
+                                .read(vaultServiceProvider)
+                                .createVault(
+                                  currentUser.uid,
+                                  nameController.text,
+                                );
+                            Navigator.pop(context);
+                          }
+                        },
+                        child: const Text('Create'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: FutureBuilder<bool>(
+        future: ref.watch(vaultServiceProvider).hasPinSetup(currentUser.uid),
+        builder: (context, pinSnapshot) {
+          if (pinSnapshot.connectionState == ConnectionState.waiting)
+            return const Center(child: CircularProgressIndicator());
+
+          final bool hasPin = pinSnapshot.data ?? false;
+          if (!hasPin) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _showSetupPinModal();
+            });
+            return const Center(
+              child: Text(
+                'Initializing Security Protocol...',
+                style: TextStyle(color: Colors.white70),
+              ),
+            );
+          }
+
+          return StreamBuilder<QuerySnapshot>(
+            stream: ref
+                .watch(vaultServiceProvider)
+                .getUserVaults(currentUser.uid),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting)
+                return const Center(child: CircularProgressIndicator());
+              final vaults = snapshot.data?.docs ?? [];
+
+              if (vaults.isEmpty)
+                return const Center(
+                  child: Text(
+                    'No vaults created yet.',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                );
+
+              return GridView.builder(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 24,
+                ),
+                itemCount: vaults.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 20,
+                  mainAxisSpacing: 20,
+                  childAspectRatio: 0.82,
+                ),
+                itemBuilder: (context, index) {
+                  final data = vaults[index].data() as Map<String, dynamic>;
+                  final title = data['name'] ?? 'Vault';
+                  final vaultId = vaults[index].id;
+
+                  return GestureDetector(
+                    onTap: () => _showPinGate(vaultId, title),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1B1B1E),
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 15,
+                            offset: Offset(0, 8),
+                          ),
+                        ],
+                        border: Border.all(color: Colors.white12, width: 1.5),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF8B5CF6), Color(0xFFF43F5E)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFF8B5CF6,
+                                  ).withOpacity(0.3),
+                                  blurRadius: 15,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.enhanced_encryption,
+                              size: 36,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(
+                              title,
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                                color: Colors.white,
+                                fontFamily: 'Roboto',
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black38,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Text(
+                              'Secured',
+                              style: TextStyle(
+                                color: Color(0xFF34D399),
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                                fontFamily: 'Roboto',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
           );
         },
       ),
