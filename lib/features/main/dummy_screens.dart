@@ -933,125 +933,343 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-class SearchScreen extends StatelessWidget {
+class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
+  @override
+  State<SearchScreen> createState() => _SearchScreenState();
+}
 
+class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Container(
-          height: 40,
-          decoration: BoxDecoration(
-            color: Colors.grey.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: const TextField(
-            decoration: InputDecoration(
-              hintText: 'Search',
-              prefixIcon: Icon(Icons.search, color: Colors.black54),
-              border: InputBorder.none,
-            ),
+        title: const Text(
+          'Reels',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+            shadows: [Shadow(blurRadius: 4, color: Colors.black54)],
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.camera_alt, color: Colors.white),
+            onPressed: () {},
+          ),
+        ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.travel_explore,
-              size: 64,
-              color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Discover',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Global search and trending posts engine coming soon.',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
+      body: PageView.builder(
+        scrollDirection: Axis.vertical,
+        itemCount: 10,
+        itemBuilder: (context, index) {
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors
+                          .primaries[index % Colors.primaries.length]
+                          .shade400,
+                      Colors
+                          .primaries[(index + 3) % Colors.primaries.length]
+                          .shade800,
+                    ],
+                  ),
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.play_circle_outline,
+                    size: 80,
+                    color: Colors.white.withOpacity(0.5),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 20,
+                left: 16,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundColor: Colors.white24,
+                          child: Text(
+                            'U${index + 1}',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'user_reel_$index',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            shadows: [Shadow(blurRadius: 2)],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Just dropped a new vibe ✨ #aura',
+                      style: TextStyle(
+                        color: Colors.white,
+                        shadows: [Shadow(blurRadius: 2)],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                bottom: 20,
+                right: 16,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildIconBtn(Icons.favorite, '12 ${index}k'),
+                    const SizedBox(height: 16),
+                    _buildIconBtn(Icons.comment, '4${index}5'),
+                    const SizedBox(height: 16),
+                    _buildIconBtn(Icons.share, 'Share'),
+                    const SizedBox(height: 16),
+                    _buildIconBtn(Icons.more_vert, ''),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildIconBtn(IconData icon, String label) {
+    return Column(
+      children: [
+        Icon(
+          icon,
+          color: Colors.white,
+          size: 32,
+          shadows: const [Shadow(blurRadius: 4, color: Colors.black)],
         ),
-      ),
+        if (label.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              shadows: [Shadow(blurRadius: 2)],
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
 
-class VaultsScreen extends StatelessWidget {
+class VaultsScreen extends StatefulWidget {
   const VaultsScreen({super.key});
+  @override
+  State<VaultsScreen> createState() => _VaultsScreenState();
+}
+
+class _VaultsScreenState extends State<VaultsScreen> {
+  final List<String> _vaults = [
+    'Classified intel',
+    'Financials 2026',
+    'Design Tokens',
+    'Private Passwords',
+  ];
+
+  void _showPinGate(String title) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.black87,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.8,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              const Icon(Icons.lock, color: Colors.white, size: 60),
+              const SizedBox(height: 16),
+              Text(
+                'Decrypting $title',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Enter 4-Digit Security PIN',
+                style: TextStyle(color: Colors.grey),
+              ),
+              const Spacer(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  4,
+                  (index) => Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 12),
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.grey.shade700, width: 2),
+                    ),
+                  ),
+                ),
+              ),
+              const Spacer(),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  childAspectRatio: 1.5,
+                ),
+                itemCount: 12,
+                itemBuilder: (context, index) {
+                  if (index == 9) return const SizedBox.shrink();
+                  if (index == 11) {
+                    return IconButton(
+                      icon: const Icon(Icons.backspace, color: Colors.white),
+                      onPressed: () {},
+                    );
+                  }
+                  final number = index == 10 ? 0 : index + 1;
+                  return InkWell(
+                    onTap: () {},
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white12,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '$number',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 40),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text(
           'Active Vaults',
           style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24),
         ),
         elevation: 0,
-      ),
-      body: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            margin: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.lock_clock,
-                  size: 48,
-                  color: Theme.of(context).primaryColor,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Zero Active Vaults',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'When someone sends you a time-locked payload, it will appear here bridging full encryption.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.add_moderator),
-                  label: const Text('Create New Vault'),
-                ),
-              ],
-            ),
-          ),
-          const Spacer(),
-          Padding(
-            padding: const EdgeInsets.all(32),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.shield, color: Colors.green, size: 20),
-                SizedBox(width: 8),
-                Text(
-                  'End-to-End Encrypted',
-                  style: TextStyle(color: Colors.black54, fontSize: 13),
-                ),
-              ],
-            ),
-          ),
+        actions: [
+          IconButton(icon: const Icon(Icons.add_moderator), onPressed: () {}),
         ],
+      ),
+      body: GridView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _vaults.length,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 0.85,
+        ),
+        itemBuilder: (context, index) {
+          final title = _vaults[index];
+          return GestureDetector(
+            onTap: () => _showPinGate(title),
+            child: Container(
+              decoration: BoxDecoration(
+                color: theme.cardColor,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                  ),
+                ],
+                border: Border.all(
+                  color: theme.primaryColor.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: theme.primaryColor.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.enhanced_encryption,
+                      size: 40,
+                      color: theme.primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Encrypted',
+                    style: TextStyle(
+                      color: Colors.redAccent,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
