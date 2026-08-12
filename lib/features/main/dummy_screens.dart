@@ -283,10 +283,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 )
               : const Icon(Icons.more_vert),
         ),
-        Image.memory(
-          base64Decode(post['imageBase64']),
-          width: double.infinity,
-          fit: BoxFit.cover,
+        AspectRatio(
+          aspectRatio: 1.0,
+          child: Image.memory(
+            base64Decode(post['imageBase64']),
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
