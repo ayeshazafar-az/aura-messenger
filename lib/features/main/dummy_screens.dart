@@ -2101,41 +2101,73 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                         );
                                       },
                                     ),
-                                    Column(
-                                      children: [
-                                        Text(
-                                          (userData?['followers'] as List?)
-                                                  ?.length
-                                                  .toString() ??
-                                              '0',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 20,
+                                    GestureDetector(
+                                      onTap: () {
+                                        final list = List<String>.from(
+                                          userData?['followers'] ?? [],
+                                        );
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => UserListScreen(
+                                              title: 'Followers',
+                                              userIds: list,
+                                            ),
                                           ),
-                                        ),
-                                        const Text(
-                                          'followers',
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                      ],
+                                        );
+                                      },
+                                      child: Column(
+                                        children: [
+                                          Text(
+                                            (userData?['followers'] as List?)
+                                                    ?.length
+                                                    .toString() ??
+                                                '0',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 20,
+                                            ),
+                                          ),
+                                          const Text(
+                                            'followers',
+                                            style: TextStyle(fontSize: 14),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                    Column(
-                                      children: [
-                                        Text(
-                                          (userData?['following'] as List?)
-                                                  ?.length
-                                                  .toString() ??
-                                              '0',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 20,
+                                    GestureDetector(
+                                      onTap: () {
+                                        final list = List<String>.from(
+                                          userData?['following'] ?? [],
+                                        );
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => UserListScreen(
+                                              title: 'Following',
+                                              userIds: list,
+                                            ),
                                           ),
-                                        ),
-                                        const Text(
-                                          'following',
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                      ],
+                                        );
+                                      },
+                                      child: Column(
+                                        children: [
+                                          Text(
+                                            (userData?['following'] as List?)
+                                                    ?.length
+                                                    .toString() ??
+                                                '0',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 20,
+                                            ),
+                                          ),
+                                          const Text(
+                                            'following',
+                                            style: TextStyle(fontSize: 14),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -2942,6 +2974,76 @@ class HelpSupportScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class UserListScreen extends StatelessWidget {
+  final String title;
+  final List<String> userIds;
+
+  const UserListScreen({super.key, required this.title, required this.userIds});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+      ),
+      body: userIds.isEmpty
+          ? Center(
+              child: Text(
+                'No $title yet.',
+                style: const TextStyle(color: Colors.grey, fontSize: 16),
+              ),
+            )
+          : ListView.builder(
+              itemCount: userIds.length,
+              itemBuilder: (context, index) {
+                return FutureBuilder<DocumentSnapshot>(
+                  future: FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(userIds[index])
+                      .get(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData || !snapshot.data!.exists)
+                      return const SizedBox.shrink();
+                    final user = snapshot.data!.data() as Map<String, dynamic>;
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.white12,
+                        backgroundImage: user['profileBase64'] != null
+                            ? MemoryImage(base64Decode(user['profileBase64']))
+                            : null,
+                        child: user['profileBase64'] == null
+                            ? const Icon(Icons.person, color: Colors.white)
+                            : null,
+                      ),
+                      title: Text(
+                        user['name'] ?? user['username'] ?? '',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        '@${user['username'] ?? 'user'}',
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                ProfileScreen(targetUserId: userIds[index]),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            ),
     );
   }
 }
