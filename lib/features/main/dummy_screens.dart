@@ -914,30 +914,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
           const SliverToBoxAdapter(child: Divider(height: 1)),
-          SliverToBoxAdapter(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: ref.watch(postServiceProvider).getFeedPosts(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError)
-                  return Center(
+          StreamBuilder<QuerySnapshot>(
+            stream: ref.watch(postServiceProvider).getFeedPosts(),
+            builder: (context, snapshot) {
+              if (snapshot.hasError)
+                return SliverToBoxAdapter(
+                  child: Center(
                     child: Text(
                       'Error: ${snapshot.error}',
                       style: const TextStyle(color: Colors.red),
                     ),
-                  );
-                if (!snapshot.hasData)
-                  return const Center(child: CircularProgressIndicator());
-                final posts = snapshot.data!.docs;
-                return ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: posts.length,
-                  itemBuilder: (context, index) {
-                    return _buildPostCard(posts[index]);
-                  },
+                  ),
                 );
-              },
-            ),
+              if (!snapshot.hasData)
+                return const SliverToBoxAdapter(
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              final posts = snapshot.data!.docs;
+              return SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  return _buildPostCard(posts[index]);
+                }, childCount: posts.length),
+              );
+            },
           ),
         ],
       ),
