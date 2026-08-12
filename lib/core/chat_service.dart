@@ -14,6 +14,17 @@ class ChatService {
     return ids.join('_');
   }
 
+  Future<void> updateChatTheme(
+    String userId1,
+    String userId2,
+    String themeKey,
+  ) async {
+    final String chatRoomId = _getChatRoomId(userId1, userId2);
+    await _firestore.collection('chat_rooms').doc(chatRoomId).set({
+      'theme': themeKey,
+    }, SetOptions(merge: true));
+  }
+
   Future<void> sendMessage(
     String receiverId,
     String message,

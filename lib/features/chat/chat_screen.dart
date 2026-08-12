@@ -428,7 +428,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
   }
 
-  Widget _buildMessageBubble(QueryDocumentSnapshot doc, bool isMe) {
+  Widget _buildMessageBubble(
+    QueryDocumentSnapshot doc,
+    bool isMe,
+    String chatTheme,
+  ) {
     final data = doc.data() as Map<String, dynamic>;
     DateTime? unlockTime;
     if (data['unlockTime'] != null) {
@@ -440,11 +444,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         stream: Stream.periodic(const Duration(seconds: 1)),
         builder: (context, _) {
           bool isLocked = unlockTime!.isAfter(DateTime.now());
-          return _buildBubbleUI(doc, isMe, isLocked, unlockTime);
+          return _buildBubbleUI(doc, isMe, isLocked, unlockTime, chatTheme);
         },
       );
     }
-    return _buildBubbleUI(doc, isMe, false, unlockTime);
+    return _buildBubbleUI(doc, isMe, false, unlockTime, chatTheme);
   }
 
   Widget _buildViewOnceCover(Map<String, dynamic> data, bool isMe) {
@@ -487,11 +491,47 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     bool isMe,
     bool isLocked,
     DateTime? unlockTime,
+    String chatTheme,
   ) {
     final data = doc.data() as Map<String, dynamic>;
     final timeString = data['timestamp'] != null
         ? DateFormat('h:mm a').format((data['timestamp'] as Timestamp).toDate())
         : '';
+
+    Gradient? bubbleGradient;
+    Color? bubbleColor;
+
+    if (isMe && !isLocked) {
+      if (chatTheme == 'sunset') {
+        bubbleGradient = const LinearGradient(
+          colors: [Color(0xFFFF512F), Color(0xFFDD2476)],
+          begin: Alignment.bottomLeft,
+          end: Alignment.topRight,
+        );
+      } else if (chatTheme == 'ocean') {
+        bubbleGradient = const LinearGradient(
+          colors: [Color(0xFF2193b0), Color(0xFF6dd5ed)],
+          begin: Alignment.bottomLeft,
+          end: Alignment.topRight,
+        );
+      } else if (chatTheme == 'forest') {
+        bubbleGradient = const LinearGradient(
+          colors: [Color(0xFF134E5E), Color(0xFF71B280)],
+          begin: Alignment.bottomLeft,
+          end: Alignment.topRight,
+        );
+      } else if (chatTheme == 'monochrome') {
+        bubbleColor = Colors.grey.shade800;
+      } else {
+        bubbleGradient = const LinearGradient(
+          colors: [Color(0xFF8B5CF6), Color(0xFFF43F5E)],
+          begin: Alignment.bottomLeft,
+          end: Alignment.topRight,
+        );
+      }
+    } else if (!isLocked) {
+      bubbleColor = Theme.of(context).cardColor;
+    }
 
     return GestureDetector(
       onLongPress: () => _showMessageOptions(doc, data, isMe),
@@ -513,20 +553,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ? const EdgeInsets.all(4)
               : const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           decoration: BoxDecoration(
-            gradient: isLocked
-                ? null
-                : isMe
-                ? const LinearGradient(
-                    colors: [Color(0xFF8B5CF6), Color(0xFFF43F5E)],
-                    begin: Alignment.bottomLeft,
-                    end: Alignment.topRight,
-                  )
-                : null,
-            color: isLocked
-                ? const Color(0xFF1E1E1E)
-                : isMe
-                ? null
-                : Colors.white,
+            gradient: bubbleGradient,
+            color: isLocked ? const Color(0xFF1E1E1E) : bubbleColor,
             borderRadius: BorderRadius.circular(22).copyWith(
               bottomRight: isMe
                   ? const Radius.circular(6)
@@ -727,15 +755,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     return Container(
       padding: const EdgeInsets.all(12.0),
-      decoration: const BoxDecoration(color: Colors.white),
+      decoration: BoxDecoration(color: Theme.of(context).cardColor),
       child: SafeArea(
         child: Row(
           children: [
             GestureDetector(
               onTap: _sendImage,
-              child: const Icon(
+              child: Icon(
                 Icons.add_circle,
-                color: Color(0xFF8B5CF6),
+                color: Theme.of(context).primaryColor,
                 size: 28,
               ),
             ),
@@ -745,7 +773,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 Icons.lock_clock,
                 color: _selectedLockMinutes != null
                     ? Colors.amber
-                    : const Color(0xFF8B5CF6),
+                    : Theme.of(context).primaryColor,
                 size: 28,
               ),
               onSelected: (val) {
@@ -768,23 +796,31 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 decoration: InputDecoration(
                   hintText: 'Message',
                   filled: true,
-                  fillColor: const Color(0xFFFAFAFA),
+                  fillColor: Theme.of(context).scaffoldBackgroundColor,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 20,
                     vertical: 10,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
-                    borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
+                    borderSide: BorderSide(
+                      color: Theme.of(
+                        context,
+                      ).dividerColor.withValues(alpha: 0.1),
+                    ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
-                    borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
+                    borderSide: BorderSide(
+                      color: Theme.of(
+                        context,
+                      ).dividerColor.withValues(alpha: 0.1),
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
-                    borderSide: const BorderSide(
-                      color: Color(0xFF8B5CF6),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).primaryColor,
                       width: 1.5,
                     ),
                   ),
@@ -794,10 +830,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             const SizedBox(width: 12),
             GestureDetector(
               onTap: _sendMessage,
-              child: const CircleAvatar(
+              child: CircleAvatar(
                 radius: 20,
-                backgroundColor: Color(0xFF8B5CF6),
-                child: Icon(Icons.arrow_upward, color: Colors.white, size: 20),
+                backgroundColor: Theme.of(context).primaryColor,
+                child: const Icon(
+                  Icons.arrow_upward,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
             ),
           ],
@@ -835,101 +875,207 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
+  void _showThemeSelector(String currentUserId) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        final Map<String, Color> themes = {
+          'default': Theme.of(context).scaffoldBackgroundColor,
+          'monochrome': Colors.grey.shade900,
+          'sunset': const Color(0xFF4A192C),
+          'ocean': const Color(0xFF0F172A),
+          'forest': const Color(0xFF132A13),
+        };
+
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Select Chat Theme',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 16,
+                runSpacing: 16,
+                children: themes.entries
+                    .map(
+                      (e) => GestureDetector(
+                        onTap: () {
+                          ref
+                              .read(chatServiceProvider)
+                              .updateChatTheme(
+                                currentUserId,
+                                widget.receiverId,
+                                e.key,
+                              );
+                          Navigator.pop(context);
+                        },
+                        child: Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: e.value,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white24, width: 2),
+                            boxShadow: const [
+                              BoxShadow(color: Colors.black26, blurRadius: 4),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUser = ref.watch(authServiceProvider).currentUser;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.receiverName),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.call, color: Color(0xFF8B5CF6)),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    MockCallScreen(isVideo: false, name: widget.receiverName),
-              ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.videocam, color: Color(0xFF8B5CF6)),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    MockCallScreen(isVideo: true, name: widget.receiverName),
-              ),
-            ),
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Color(0xFF8B5CF6)),
-            onSelected: (val) {
-              if (val == 'delete') {
-                _confirmDeleteChat(currentUser!.uid);
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'delete',
-                child: Text(
-                  'Delete Chat',
-                  style: TextStyle(
-                    color: Colors.redAccent,
-                    fontWeight: FontWeight.bold,
+    return StreamBuilder<DocumentSnapshot>(
+      stream: ref
+          .watch(chatServiceProvider)
+          .getRoomStatus(currentUser!.uid, widget.receiverId),
+      builder: (context, roomSnapshot) {
+        final roomData = roomSnapshot.data?.data() as Map<String, dynamic>?;
+        final chatTheme = roomData?['theme'] ?? 'default';
+
+        Color bgColor = Theme.of(context).scaffoldBackgroundColor;
+        if (chatTheme == 'monochrome') bgColor = Colors.grey.shade900;
+        if (chatTheme == 'sunset') bgColor = const Color(0xFF4A192C);
+        if (chatTheme == 'ocean') bgColor = const Color(0xFF0F172A);
+        if (chatTheme == 'forest') bgColor = const Color(0xFF132A13);
+
+        return Scaffold(
+          backgroundColor: bgColor,
+          appBar: AppBar(
+            title: Text(widget.receiverName),
+            backgroundColor: bgColor,
+            actions: [
+              IconButton(
+                icon: Icon(Icons.call, color: Theme.of(context).primaryColor),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => MockCallScreen(
+                      isVideo: false,
+                      name: widget.receiverName,
+                    ),
                   ),
                 ),
               ),
+              IconButton(
+                icon: Icon(
+                  Icons.videocam,
+                  color: Theme.of(context).primaryColor,
+                ),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => MockCallScreen(
+                      isVideo: true,
+                      name: widget.receiverName,
+                    ),
+                  ),
+                ),
+              ),
+              PopupMenuButton<String>(
+                icon: Icon(
+                  Icons.more_vert,
+                  color: Theme.of(context).primaryColor,
+                ),
+                onSelected: (val) {
+                  if (val == 'delete') {
+                    _confirmDeleteChat(currentUser!.uid);
+                  }
+                  if (val == 'theme') {
+                    _showThemeSelector(currentUser.uid);
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'theme',
+                    child: Text(
+                      'Change Wallpaper',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Text(
+                      'Delete Chat',
+                      style: TextStyle(
+                        color: Colors.redAccent,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 8),
             ],
           ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: ref
-                  .watch(chatServiceProvider)
-                  .getMessages(widget.receiverId, currentUser!.uid),
-              builder: (context, snapshot) {
-                if (snapshot.hasError)
-                  return const Center(child: Text('Error'));
-                if (snapshot.connectionState == ConnectionState.waiting)
-                  return const Center(child: CircularProgressIndicator());
+          body: Column(
+            children: [
+              Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: ref
+                      .watch(chatServiceProvider)
+                      .getMessages(widget.receiverId, currentUser!.uid),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError)
+                      return const Center(child: Text('Error'));
+                    if (snapshot.connectionState == ConnectionState.waiting)
+                      return const Center(child: CircularProgressIndicator());
 
-                final msgs = snapshot.data!.docs;
+                    final msgs = snapshot.data!.docs;
 
-                return ListView.builder(
-                  controller: _scrollController,
-                  reverse: true,
-                  itemCount: msgs.length,
-                  itemBuilder: (context, index) {
-                    final data = msgs[index].data() as Map<String, dynamic>;
-                    if (data['deletedFor'] != null &&
-                        (data['deletedFor'] as List).contains(
-                          currentUser.uid,
-                        )) {
-                      return const SizedBox.shrink();
-                    }
-                    bool isMe = data['senderId'] == currentUser.uid;
-                    return _buildMessageBubble(msgs[index], isMe);
+                    return ListView.builder(
+                      controller: _scrollController,
+                      reverse: true,
+                      itemCount: msgs.length,
+                      itemBuilder: (context, index) {
+                        final data = msgs[index].data() as Map<String, dynamic>;
+                        if (data['deletedFor'] != null &&
+                            (data['deletedFor'] as List).contains(
+                              currentUser.uid,
+                            )) {
+                          return const SizedBox.shrink();
+                        }
+                        bool isMe = data['senderId'] == currentUser.uid;
+                        return _buildMessageBubble(
+                          msgs[index],
+                          isMe,
+                          chatTheme,
+                        );
+                      },
+                    );
                   },
-                );
-              },
-            ),
+                ),
+              ),
+              StreamBuilder<DocumentSnapshot>(
+                stream: ref
+                    .watch(chatServiceProvider)
+                    .getRoomStatus(currentUser.uid, widget.receiverId),
+                builder: (context, snapshot) {
+                  return _buildInputArea(snapshot.data, currentUser.uid);
+                },
+              ),
+            ],
           ),
-          StreamBuilder<DocumentSnapshot>(
-            stream: ref
-                .watch(chatServiceProvider)
-                .getRoomStatus(currentUser!.uid, widget.receiverId),
-            builder: (context, snapshot) {
-              return _buildInputArea(snapshot.data, currentUser.uid);
-            },
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
