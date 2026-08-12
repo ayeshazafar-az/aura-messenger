@@ -135,7 +135,18 @@ class HubScreen extends ConsumerWidget {
                         return const Center(child: CircularProgressIndicator());
                       }
 
-                      final rooms = snapshot.data!.docs;
+                      final rooms = snapshot.data!.docs.toList();
+
+                      rooms.sort((a, b) {
+                        final dataA = a.data() as Map<String, dynamic>;
+                        final dataB = b.data() as Map<String, dynamic>;
+                        final timeA = dataA['lastMessageTime'] as Timestamp?;
+                        final timeB = dataB['lastMessageTime'] as Timestamp?;
+                        if (timeA == null && timeB == null) return 0;
+                        if (timeA == null) return 1;
+                        if (timeB == null) return -1;
+                        return timeB.compareTo(timeA);
+                      });
 
                       if (rooms.isEmpty) {
                         return Center(

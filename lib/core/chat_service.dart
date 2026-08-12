@@ -60,6 +60,10 @@ class ChatService {
     };
 
     await roomDoc.collection('messages').add(newMessage);
+
+    await roomDoc.set({
+      'lastMessageTime': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   Future<void> sendImageMessage(
@@ -106,6 +110,10 @@ class ChatService {
     }
 
     await roomDoc.collection('messages').add(newMessage);
+
+    await roomDoc.set({
+      'lastMessageTime': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   Stream<QuerySnapshot> getMessages(String userId1, String userId2) {
