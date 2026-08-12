@@ -959,13 +959,21 @@ class _SearchScreenState extends State<SearchScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
-          'Reels',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-            shadows: [Shadow(blurRadius: 4, color: Colors.black54)],
+        title: Container(
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const TextField(
+            style: TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: 'Search Reels & Users...',
+              hintStyle: TextStyle(color: Colors.white70),
+              prefixIcon: Icon(Icons.search, color: Colors.white),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(vertical: 10),
+            ),
           ),
         ),
         actions: [
@@ -1853,7 +1861,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       appBar: AppBar(
         title: Row(
           children: [
-            Icon(Icons.lock_outline, size: 16, color: theme.iconTheme.color),
+            Icon(
+              _isPrivate ? Icons.lock : Icons.lock_open,
+              size: 16,
+              color: theme.iconTheme.color,
+            ),
             const SizedBox(width: 8),
             StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
