@@ -983,92 +983,108 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
         ],
       ),
-      body: PageView.builder(
-        scrollDirection: Axis.vertical,
-        itemCount: 10,
-        itemBuilder: (context, index) {
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors
-                          .primaries[index % Colors.primaries.length]
-                          .shade400,
-                      Colors
-                          .primaries[(index + 3) % Colors.primaries.length]
-                          .shade800,
-                    ],
-                  ),
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.play_circle_outline,
-                    size: 80,
-                    color: Colors.white.withOpacity(0.5),
-                  ),
-                ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('posts')
+            .orderBy('timestamp', descending: true)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData)
+            return const Center(child: CircularProgressIndicator());
+          final posts = snapshot.data!.docs;
+          if (posts.isEmpty) {
+            return const Center(
+              child: Text(
+                'No Reels Yet',
+                style: TextStyle(color: Colors.white),
               ),
-              Positioned(
-                bottom: 20,
-                left: 16,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+            );
+          }
+
+          return PageView.builder(
+            scrollDirection: Axis.vertical,
+            itemCount: posts.length,
+            itemBuilder: (context, index) {
+              final post = posts[index].data() as Map<String, dynamic>;
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.memory(
+                    base64Decode(post['imageBase64']),
+                    fit: BoxFit.cover,
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.7),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 20,
+                    left: 16,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CircleAvatar(
-                          radius: 18,
-                          backgroundColor: Colors.white24,
-                          child: Text(
-                            'U${index + 1}',
-                            style: const TextStyle(color: Colors.white),
-                          ),
+                        Row(
+                          children: [
+                            const CircleAvatar(
+                              radius: 18,
+                              backgroundColor: Colors.white24,
+                              child: Icon(
+                                Icons.person,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '@${post['uploaderId'].toString().substring(0, 5)}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                shadows: [Shadow(blurRadius: 2)],
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(height: 8),
                         Text(
-                          'user_reel_$index',
+                          post['caption'] ?? 'Just dropped a new vibe ✨ #aura',
                           style: const TextStyle(
                             color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: 14,
                             shadows: [Shadow(blurRadius: 2)],
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Just dropped a new vibe ✨ #aura',
-                      style: TextStyle(
-                        color: Colors.white,
-                        shadows: [Shadow(blurRadius: 2)],
-                      ),
+                  ),
+                  Positioned(
+                    bottom: 20,
+                    right: 16,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildIconBtn(Icons.favorite, '${post['likes'] ?? 0}'),
+                        const SizedBox(height: 16),
+                        _buildIconBtn(Icons.comment, '0'),
+                        const SizedBox(height: 16),
+                        _buildIconBtn(Icons.share, 'Share'),
+                        const SizedBox(height: 16),
+                        _buildIconBtn(Icons.more_vert, ''),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              Positioned(
-                bottom: 20,
-                right: 16,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildIconBtn(Icons.favorite, '12 ${index}k'),
-                    const SizedBox(height: 16),
-                    _buildIconBtn(Icons.comment, '4${index}5'),
-                    const SizedBox(height: 16),
-                    _buildIconBtn(Icons.share, 'Share'),
-                    const SizedBox(height: 16),
-                    _buildIconBtn(Icons.more_vert, ''),
-                  ],
-                ),
-              ),
-            ],
+                  ),
+                ],
+              );
+            },
           );
         },
       ),
