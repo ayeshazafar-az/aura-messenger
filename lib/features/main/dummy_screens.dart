@@ -1031,28 +1031,40 @@ class _SearchScreenState extends State<SearchScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            const CircleAvatar(
-                              radius: 18,
-                              backgroundColor: Colors.white24,
-                              child: Icon(
-                                Icons.person,
-                                color: Colors.white,
-                                size: 20,
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ProfileScreen(
+                                  targetUserId: post['uploaderId'],
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '@${post['uploaderId'].toString().substring(0, 5)}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                shadows: [Shadow(blurRadius: 2)],
+                            );
+                          },
+                          child: Row(
+                            children: [
+                              const CircleAvatar(
+                                radius: 18,
+                                backgroundColor: Colors.white24,
+                                child: Icon(
+                                  Icons.person,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 8),
+                              Text(
+                                '@${post['uploaderId'].toString().substring(0, 5)}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  shadows: [Shadow(blurRadius: 2)],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -1577,7 +1589,8 @@ class _VaultsScreenState extends ConsumerState<VaultsScreen> {
 }
 
 class ProfileScreen extends ConsumerStatefulWidget {
-  const ProfileScreen({super.key});
+  final String? targetUserId;
+  const ProfileScreen({super.key, this.targetUserId});
   @override
   ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
@@ -1591,29 +1604,84 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _loadPrivacySettings();
   }
 
+  String get _uid =>
+      widget.targetUserId ?? ref.read(authServiceProvider).currentUser!.uid;
+  bool get _isSelf =>
+      widget.targetUserId == null ||
+      widget.targetUserId == ref.read(authServiceProvider).currentUser!.uid;
+
   Future<void> _loadPrivacySettings() async {
-    final user = ref.read(authServiceProvider).currentUser;
-    if (user != null) {
-      final doc = await FirebaseFirestore.instance
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_uid)
+        .get();
+    if (mounted)
+      setState(() {
+        _isPrivate = doc.data()?['isPrivate'] ?? false;
+      });
+  }
+
+  Future<void> _togglePrivacy(bool val) async {
+    if (!_isSelf) return;
+    await FirebaseFirestore.instance.collection('users').doc(_uid).update({
+      'isPrivate': val,
+    });
+    if (mounted) setState(() => _isPrivate = val);
+  }
+
+  Future<void> _handleFollow(Map<String, dynamic>? targetData) async {
+    if (_isSelf || targetData == null) return;
+    final currentUserId = ref.read(authServiceProvider).currentUser!.uid;
+
+    final followers = List<String>.from(targetData['followers'] ?? []);
+    final followRequests = List<String>.from(
+      targetData['followRequests'] ?? [],
+    );
+
+    if (followers.contains(currentUserId)) {
+      // Unfollow
+      await FirebaseFirestore.instance.collection('users').doc(_uid).update({
+        'followers': FieldValue.arrayRemove([currentUserId]),
+      });
+      await FirebaseFirestore.instance
           .collection('users')
-          .doc(user.uid)
-          .get();
-      if (mounted) {
-        setState(() {
-          _isPrivate = doc.data()?['isPrivate'] ?? false;
+          .doc(currentUserId)
+          .update({
+            'following': FieldValue.arrayRemove([_uid]),
+          });
+    } else if (followRequests.contains(currentUserId)) {
+      // Cancel Request
+      await FirebaseFirestore.instance.collection('users').doc(_uid).update({
+        'followRequests': FieldValue.arrayRemove([currentUserId]),
+      });
+    } else {
+      // Follow / Request to Follow
+      if (targetData['isPrivate'] == true) {
+        await FirebaseFirestore.instance.collection('users').doc(_uid).update({
+          'followRequests': FieldValue.arrayUnion([currentUserId]),
         });
+      } else {
+        await FirebaseFirestore.instance.collection('users').doc(_uid).update({
+          'followers': FieldValue.arrayUnion([currentUserId]),
+        });
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUserId)
+            .update({
+              'following': FieldValue.arrayUnion([_uid]),
+            });
       }
     }
   }
 
-  Future<void> _togglePrivacy(bool val) async {
-    final user = ref.read(authServiceProvider).currentUser;
-    if (user != null) {
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).update(
-        {'isPrivate': val},
-      );
-      if (mounted) setState(() => _isPrivate = val);
-    }
+  String _getFollowButtonText(Map<String, dynamic>? data) {
+    if (data == null) return 'Follow';
+    final currentUserId = ref.read(authServiceProvider).currentUser!.uid;
+    final followers = List<String>.from(data['followers'] ?? []);
+    final followRequests = List<String>.from(data['followRequests'] ?? []);
+    if (followers.contains(currentUserId)) return 'Following';
+    if (followRequests.contains(currentUserId)) return 'Requested';
+    return 'Follow';
   }
 
   Future<void> _updateField(
@@ -1886,7 +1954,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('users')
-                  .doc(user?.uid)
+                  .doc(_uid)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) return const Text('profile');
@@ -1931,16 +1999,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 child: StreamBuilder<DocumentSnapshot>(
                   stream: FirebaseFirestore.instance
                       .collection('users')
-                      .doc(user?.uid)
+                      .doc(_uid)
                       .snapshots(),
                   builder: (context, snapshot) {
-                    if (!snapshot.hasData)
+                    if (!snapshot.hasData) {
                       return const Center(
                         child: Padding(
                           padding: EdgeInsets.all(32),
                           child: CircularProgressIndicator(),
                         ),
                       );
+                    }
                     final userData =
                         snapshot.data!.data() as Map<String, dynamic>?;
 
@@ -2033,30 +2102,36 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                       },
                                     ),
                                     Column(
-                                      children: const [
+                                      children: [
                                         Text(
-                                          '0',
-                                          style: TextStyle(
+                                          (userData?['followers'] as List?)
+                                                  ?.length
+                                                  .toString() ??
+                                              '0',
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 20,
                                           ),
                                         ),
-                                        Text(
+                                        const Text(
                                           'followers',
                                           style: TextStyle(fontSize: 14),
                                         ),
                                       ],
                                     ),
                                     Column(
-                                      children: const [
+                                      children: [
                                         Text(
-                                          '0',
-                                          style: TextStyle(
+                                          (userData?['following'] as List?)
+                                                  ?.length
+                                                  .toString() ??
+                                              '0',
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 20,
                                           ),
                                         ),
-                                        Text(
+                                        const Text(
                                           'following',
                                           style: TextStyle(fontSize: 14),
                                         ),
@@ -2073,6 +2148,53 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           child: Text(
                             userData?['bio'] ?? 'Available\n✨',
                             style: const TextStyle(fontSize: 14, height: 1.4),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: !_isSelf
+                                ? ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor:
+                                          _getFollowButtonText(userData) ==
+                                              'Following'
+                                          ? Colors.grey.shade800
+                                          : Theme.of(context).primaryColor,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                    onPressed: () => _handleFollow(userData),
+                                    child: Text(
+                                      _getFollowButtonText(userData),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  )
+                                : OutlinedButton(
+                                    style: OutlinedButton.styleFrom(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    onPressed: () =>
+                                        _showEditProfileSheet(userData),
+                                    child: const Text(
+                                      'Edit Profile',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
                           ),
                         ),
                         if (userData != null &&
