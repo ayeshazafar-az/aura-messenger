@@ -522,6 +522,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         );
       } else if (chatTheme == 'monochrome') {
         bubbleColor = Colors.grey.shade800;
+      } else if (chatTheme == 'solid_black') {
+        bubbleColor = const Color(0xFF262626);
+      } else if (chatTheme == 'solid_crimson') {
+        bubbleColor = const Color(0xFFDC143C);
+      } else if (chatTheme == 'solid_navy') {
+        bubbleColor = const Color(0xFF000080);
+      } else if (chatTheme == 'solid_green') {
+        bubbleColor = const Color(0xFF25D366);
       } else {
         bubbleGradient = const LinearGradient(
           colors: [Color(0xFF8B5CF6), Color(0xFFF43F5E)],
@@ -638,7 +646,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           data['message'] ?? '',
                           style: TextStyle(
                             fontSize: 16,
-                            color: isMe ? Colors.white : Colors.black87,
+                            color: isMe
+                                ? Colors.white
+                                : Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium?.color ??
+                                      Colors.black87,
                           ),
                         ),
                         if (data['isEdited'] == true)
@@ -884,6 +897,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       builder: (context) {
         final Map<String, Color> themes = {
           'default': Theme.of(context).scaffoldBackgroundColor,
+          'solid_green': const Color(0xFF128C7E),
+          'solid_navy': const Color(0xFF0A192F),
+          'solid_crimson': const Color(0xFF4A0E17),
+          'solid_black': Colors.black,
           'monochrome': Colors.grey.shade900,
           'sunset': const Color(0xFF4A192C),
           'ocean': const Color(0xFF0F172A),
@@ -956,12 +973,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         if (chatTheme == 'sunset') bgColor = const Color(0xFF4A192C);
         if (chatTheme == 'ocean') bgColor = const Color(0xFF0F172A);
         if (chatTheme == 'forest') bgColor = const Color(0xFF132A13);
+        if (chatTheme == 'solid_black') bgColor = Colors.black;
+        if (chatTheme == 'solid_crimson') bgColor = const Color(0xFF4A0E17);
+        if (chatTheme == 'solid_navy') bgColor = const Color(0xFF0A192F);
+        if (chatTheme == 'solid_green') bgColor = const Color(0xFF128C7E);
 
         return Scaffold(
           backgroundColor: bgColor,
           appBar: AppBar(
             title: Text(widget.receiverName),
             backgroundColor: bgColor,
+            foregroundColor: (chatTheme != 'default') ? Colors.white : null,
+            iconTheme: IconThemeData(
+              color: (chatTheme != 'default')
+                  ? Colors.white
+                  : Theme.of(context).primaryColor,
+            ),
             actions: [
               IconButton(
                 icon: Icon(Icons.call, color: Theme.of(context).primaryColor),
