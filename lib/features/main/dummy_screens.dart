@@ -370,6 +370,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: StreamBuilder<QuerySnapshot>(
               stream: ref.watch(storyServiceProvider).getActiveStories(),
               builder: (context, snapshot) {
+                if (snapshot.hasError)
+                  return Text(
+                    'Err: ${snapshot.error}',
+                    style: const TextStyle(color: Colors.red),
+                  );
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const SizedBox(
                     height: 110,
@@ -916,7 +921,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: StreamBuilder<QuerySnapshot>(
               stream: ref.watch(postServiceProvider).getFeedPosts(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return const SizedBox.shrink();
+                if (snapshot.hasError)
+                  return Center(
+                    child: Text(
+                      'Error: ${snapshot.error}',
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  );
+                if (!snapshot.hasData)
+                  return const Center(child: CircularProgressIndicator());
                 final posts = snapshot.data!.docs;
                 return ListView.builder(
                   shrinkWrap: true,
