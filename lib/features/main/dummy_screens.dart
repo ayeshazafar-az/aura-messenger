@@ -951,6 +951,8 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
+  String _searchQuery = '';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -965,9 +967,10 @@ class _SearchScreenState extends State<SearchScreen> {
             color: Colors.white.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const TextField(
-            style: TextStyle(color: Colors.white),
-            decoration: InputDecoration(
+          child: TextField(
+            onChanged: (val) => setState(() => _searchQuery = val.trim()),
+            style: const TextStyle(color: Colors.white),
+            decoration: const InputDecoration(
               hintText: 'Search Reels & Users...',
               hintStyle: TextStyle(color: Colors.white70),
               prefixIcon: Icon(Icons.search, color: Colors.white),
@@ -983,123 +986,199 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
         ],
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('posts')
-            .orderBy('timestamp', descending: true)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData)
-            return const Center(child: CircularProgressIndicator());
-          final posts = snapshot.data!.docs;
-          if (posts.isEmpty) {
-            return const Center(
-              child: Text(
-                'No Reels Yet',
-                style: TextStyle(color: Colors.white),
-              ),
-            );
-          }
+      body: _searchQuery.isNotEmpty
+          ? StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData)
+                  return const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  );
 
-          return PageView.builder(
-            scrollDirection: Axis.vertical,
-            itemCount: posts.length,
-            itemBuilder: (context, index) {
-              final post = posts[index].data() as Map<String, dynamic>;
-              return Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.memory(
-                    base64Decode(post['imageBase64']),
-                    fit: BoxFit.cover,
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.7),
-                        ],
-                      ),
+                final q = _searchQuery.toLowerCase();
+                final users = snapshot.data!.docs.where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final uname = (data['username'] ?? '')
+                      .toString()
+                      .toLowerCase();
+                  final name = (data['name'] ?? '').toString().toLowerCase();
+                  return uname.contains(q) || name.contains(q);
+                }).toList();
+
+                if (users.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'No users found',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
                     ),
-                  ),
-                  Positioned(
-                    bottom: 20,
-                    left: 16,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  );
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.only(top: 100),
+                  itemCount: users.length,
+                  itemBuilder: (context, index) {
+                    final u = users[index].data() as Map<String, dynamic>;
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.white24,
+                        backgroundImage: u['profileBase64'] != null
+                            ? MemoryImage(base64Decode(u['profileBase64']))
+                            : null,
+                        child: u['profileBase64'] == null
+                            ? const Icon(Icons.person, color: Colors.white)
+                            : null,
+                      ),
+                      title: Text(
+                        u['name'] ?? u['username'] ?? '',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: Text(
+                        '@${u['username'] ?? ''}',
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                ProfileScreen(targetUserId: users[index].id),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            )
+          : StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('posts')
+                  .orderBy('timestamp', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData)
+                  return const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  );
+                final posts = snapshot.data!.docs;
+                if (posts.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'No Reels Yet',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  );
+                }
+
+                return PageView.builder(
+                  scrollDirection: Axis.vertical,
+                  itemCount: posts.length,
+                  itemBuilder: (context, index) {
+                    final post = posts[index].data() as Map<String, dynamic>;
+                    return Stack(
+                      fit: StackFit.expand,
                       children: [
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ProfileScreen(
-                                  targetUserId: post['uploaderId'],
-                                ),
-                              ),
-                            );
-                          },
-                          child: Row(
+                        Image.memory(
+                          base64Decode(post['imageBase64']),
+                          fit: BoxFit.cover,
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withValues(alpha: 0.7),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 20,
+                          left: 16,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const CircleAvatar(
-                                radius: 18,
-                                backgroundColor: Colors.white24,
-                                child: Icon(
-                                  Icons.person,
-                                  color: Colors.white,
-                                  size: 20,
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => ProfileScreen(
+                                        targetUserId: post['uploaderId'],
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Row(
+                                  children: [
+                                    const CircleAvatar(
+                                      radius: 18,
+                                      backgroundColor: Colors.white24,
+                                      child: Icon(
+                                        Icons.person,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '@${post['uploaderId'].toString().substring(0, 5)}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        shadows: [Shadow(blurRadius: 2)],
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(height: 8),
                               Text(
-                                '@${post['uploaderId'].toString().substring(0, 5)}',
+                                post['caption'] ??
+                                    'Just dropped a new vibe ✨ #aura',
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   shadows: [Shadow(blurRadius: 2)],
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          post['caption'] ?? 'Just dropped a new vibe ✨ #aura',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            shadows: [Shadow(blurRadius: 2)],
+                        Positioned(
+                          bottom: 20,
+                          right: 16,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildIconBtn(
+                                Icons.favorite,
+                                '${post['likes'] ?? 0}',
+                              ),
+                              const SizedBox(height: 16),
+                              _buildIconBtn(Icons.comment, '0'),
+                              const SizedBox(height: 16),
+                              _buildIconBtn(Icons.share, 'Share'),
+                              const SizedBox(height: 16),
+                              _buildIconBtn(Icons.more_vert, ''),
+                            ],
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 20,
-                    right: 16,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildIconBtn(Icons.favorite, '${post['likes'] ?? 0}'),
-                        const SizedBox(height: 16),
-                        _buildIconBtn(Icons.comment, '0'),
-                        const SizedBox(height: 16),
-                        _buildIconBtn(Icons.share, 'Share'),
-                        const SizedBox(height: 16),
-                        _buildIconBtn(Icons.more_vert, ''),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            },
-          );
-        },
-      ),
+                    );
+                  },
+                );
+              },
+            ),
     );
   }
 
