@@ -353,7 +353,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               Icons.favorite_border,
               color: Theme.of(context).iconTheme.color,
             ),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ActivityScreen()),
+              );
+            },
           ),
           IconButton(
             icon: Icon(Icons.send, color: Theme.of(context).iconTheme.color),
@@ -3123,6 +3128,132 @@ class UserListScreen extends StatelessWidget {
                 );
               },
             ),
+    );
+  }
+}
+
+class ActivityScreen extends ConsumerWidget {
+  const ActivityScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentUserId = ref.read(authServiceProvider).currentUser!.uid;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Activity',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUserId)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData)
+            return const Center(child: CircularProgressIndicator());
+          final data = snapshot.data!.data() as Map<String, dynamic>?;
+          if (data == null) return const Center(child: Text('No data'));
+
+          final rawRequests = data['followRequests'] as List<dynamic>? ?? [];
+          final followRequests = rawRequests.map((e) => e.toString()).toList();
+
+          if (followRequests.isEmpty) {
+            return const Center(
+              child: Text(
+                'No new follow requests.',
+                style: TextStyle(color: Colors.grey, fontSize: 16),
+              ),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: followRequests.length,
+            itemBuilder: (context, index) {
+              final targetUid = followRequests[index];
+              return FutureBuilder<DocumentSnapshot>(
+                future: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(targetUid)
+                    .get(),
+                builder: (context, userSnap) {
+                  if (!userSnap.hasData || !userSnap.data!.exists)
+                    return const SizedBox.shrink();
+                  final u = userSnap.data!.data() as Map<String, dynamic>;
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.white12,
+                      backgroundImage: u['profileBase64'] != null
+                          ? MemoryImage(base64Decode(u['profileBase64']))
+                          : null,
+                      child: u['profileBase64'] == null
+                          ? const Icon(Icons.person)
+                          : null,
+                    ),
+                    title: Text(
+                      u['name'] ?? u['username'] ?? '',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: const Text('Requested to follow you'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).primaryColor,
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: () async {
+                            await FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(currentUserId)
+                                .update({
+                                  'followRequests': FieldValue.arrayRemove([
+                                    targetUid,
+                                  ]),
+                                  'followers': FieldValue.arrayUnion([
+                                    targetUid,
+                                  ]),
+                                });
+                            await FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(targetUid)
+                                .update({
+                                  'following': FieldValue.arrayUnion([
+                                    currentUserId,
+                                  ]),
+                                });
+                          },
+                          child: const Text('Accept'),
+                        ),
+                        const SizedBox(width: 8),
+                        OutlinedButton(
+                          onPressed: () async {
+                            await FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(currentUserId)
+                                .update({
+                                  'followRequests': FieldValue.arrayRemove([
+                                    targetUid,
+                                  ]),
+                                });
+                          },
+                          child: const Text(
+                            'Decline',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }
