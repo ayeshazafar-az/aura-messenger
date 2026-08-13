@@ -236,15 +236,17 @@ class _VaultDetailsScreenState extends ConsumerState<VaultDetailsScreen> {
                   .watch(vaultServiceProvider)
                   .getVaultItems(currentUser.uid, widget.vaultId),
               builder: (context, snapshot) {
-                if (snapshot.hasError)
+                if (snapshot.hasError) {
                   return const Center(
                     child: Text(
                       'Error decrypting vault',
                       style: TextStyle(color: Colors.red),
                     ),
                   );
-                if (snapshot.connectionState == ConnectionState.waiting)
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
+                }
 
                 final items = snapshot.data?.docs ?? [];
                 if (items.isEmpty) {

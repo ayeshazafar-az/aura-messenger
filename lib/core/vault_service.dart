@@ -72,7 +72,7 @@ class VaultService {
         .collection('items')
         .add({
           if (text != null && text.isNotEmpty) 'text': text,
-          if (imageBase64 != null) 'imageBase64': imageBase64,
+          'imageBase64': ?imageBase64,
           'createdAt': FieldValue.serverTimestamp(),
         });
   }

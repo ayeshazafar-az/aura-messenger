@@ -139,7 +139,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.3),
+                  color: Colors.grey.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -255,10 +255,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               .collection('posts')
                               .doc(postId)
                               .delete();
-                          if (mounted)
+                          if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Post deleted')),
                             );
+                          }
                         } else if (value == 'edit') {
                           final TextEditingController editController =
                               TextEditingController(text: post['caption']);
@@ -442,11 +443,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: StreamBuilder<QuerySnapshot>(
               stream: ref.watch(storyServiceProvider).getActiveStories(),
               builder: (context, snapshot) {
-                if (snapshot.hasError)
+                if (snapshot.hasError) {
                   return Text(
                     'Err: ${snapshot.error}',
                     style: const TextStyle(color: Colors.red),
                   );
+                }
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const SizedBox(
                     height: 110,
@@ -557,8 +559,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                                                         [],
                                                                   );
                                                                   if (viewers
-                                                                      .isEmpty)
+                                                                      .isEmpty) {
                                                                     return;
+                                                                  }
                                                                   showModalBottomSheet(
                                                                     context:
                                                                         context,
@@ -603,12 +606,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                                                                       context,
                                                                                       userSnap,
                                                                                     ) {
-                                                                                      if (!userSnap.hasData)
+                                                                                      if (!userSnap.hasData) {
                                                                                         return const ListTile(
                                                                                           title: Text(
                                                                                             'Loading...',
                                                                                           ),
                                                                                         );
+                                                                                      }
                                                                                       final u =
                                                                                           userSnap.data!.data()
                                                                                               as Map<
@@ -758,7 +762,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                             radius: 32,
                                             backgroundColor: Theme.of(
                                               context,
-                                            ).primaryColor.withOpacity(0.1),
+                                            ).primaryColor.withValues(alpha: 0.1),
                                             child: Icon(
                                               Icons.person,
                                               color: Theme.of(
@@ -1086,7 +1090,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           StreamBuilder<QuerySnapshot>(
             stream: ref.watch(postServiceProvider).getFeedPosts(),
             builder: (context, snapshot) {
-              if (snapshot.hasError)
+              if (snapshot.hasError) {
                 return SliverToBoxAdapter(
                   child: Center(
                     child: Text(
@@ -1095,10 +1099,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ),
                 );
-              if (!snapshot.hasData)
+              }
+              if (!snapshot.hasData) {
                 return const SliverToBoxAdapter(
                   child: Center(child: CircularProgressIndicator()),
                 );
+              }
               final posts = snapshot.data!.docs;
               return SliverList(
                 delegate: SliverChildBuilderDelegate((context, index) {
@@ -1161,10 +1167,11 @@ class _SearchScreenState extends State<SearchScreen> {
                   .collection('users')
                   .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData)
+                if (!snapshot.hasData) {
                   return const Center(
                     child: CircularProgressIndicator(color: Colors.white),
                   );
+                }
 
                 final q = _searchQuery.toLowerCase();
                 final users = snapshot.data!.docs.where((doc) {
@@ -1231,10 +1238,11 @@ class _SearchScreenState extends State<SearchScreen> {
                   .orderBy('timestamp', descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData)
+                if (!snapshot.hasData) {
                   return const Center(
                     child: CircularProgressIndicator(color: Colors.white),
                   );
+                }
                 final posts = snapshot.data!.docs;
                 if (posts.isEmpty) {
                   return const Center(
@@ -1621,8 +1629,9 @@ class _VaultsScreenState extends ConsumerState<VaultsScreen> {
   @override
   Widget build(BuildContext context) {
     final currentUser = ref.watch(authServiceProvider).currentUser;
-    if (currentUser == null)
+    if (currentUser == null) {
       return const Scaffold(backgroundColor: Colors.black);
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F0F12),
@@ -1693,8 +1702,9 @@ class _VaultsScreenState extends ConsumerState<VaultsScreen> {
       body: FutureBuilder<bool>(
         future: ref.watch(vaultServiceProvider).hasPinSetup(currentUser.uid),
         builder: (context, pinSnapshot) {
-          if (pinSnapshot.connectionState == ConnectionState.waiting)
+          if (pinSnapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
+          }
 
           final bool hasPin = pinSnapshot.data ?? false;
           if (!hasPin) {
@@ -1714,17 +1724,19 @@ class _VaultsScreenState extends ConsumerState<VaultsScreen> {
                 .watch(vaultServiceProvider)
                 .getUserVaults(currentUser.uid),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting)
+              if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
+              }
               final vaults = snapshot.data?.docs ?? [];
 
-              if (vaults.isEmpty)
+              if (vaults.isEmpty) {
                 return const Center(
                   child: Text(
                     'No vaults created yet.',
                     style: TextStyle(color: Colors.white70),
                   ),
                 );
+              }
 
               return GridView.builder(
                 padding: const EdgeInsets.symmetric(
@@ -1774,7 +1786,7 @@ class _VaultsScreenState extends ConsumerState<VaultsScreen> {
                                 BoxShadow(
                                   color: const Color(
                                     0xFF8B5CF6,
-                                  ).withOpacity(0.3),
+                                  ).withValues(alpha: 0.3),
                                   blurRadius: 15,
                                   spreadRadius: 2,
                                 ),
@@ -1863,10 +1875,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         .collection('users')
         .doc(_uid)
         .get();
-    if (mounted)
+    if (mounted) {
       setState(() {
         _isPrivate = doc.data()?['isPrivate'] ?? false;
       });
+    }
   }
 
   Future<void> _togglePrivacy(bool val) async {
@@ -2018,7 +2031,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.3),
+                  color: Colors.grey.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -2739,8 +2752,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     .where('uploaderId', isEqualTo: user?.uid)
                     .snapshots(),
                 builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting)
+                  if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
+                  }
                   final posts = snapshot.data?.docs ?? [];
                   if (posts.isEmpty) {
                     return Center(
@@ -2924,7 +2938,7 @@ class SettingsScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Icon(icon, color: color),
@@ -2955,19 +2969,19 @@ class _NotificationsSettingsScreenState
             subtitle: const Text('Receive alerts for new messages'),
             value: push,
             onChanged: (v) => setState(() => push = v),
-            activeColor: const Color(0xFF8B5CF6),
+            activeThumbColor: const Color(0xFF8B5CF6),
           ),
           SwitchListTile(
             title: const Text('Message Sounds'),
             value: sounds,
             onChanged: (v) => setState(() => sounds = v),
-            activeColor: const Color(0xFF8B5CF6),
+            activeThumbColor: const Color(0xFF8B5CF6),
           ),
           SwitchListTile(
             title: const Text('In-App Vibrations'),
             value: vibrates,
             onChanged: (v) => setState(() => vibrates = v),
-            activeColor: const Color(0xFF8B5CF6),
+            activeThumbColor: const Color(0xFF8B5CF6),
           ),
         ],
       ),
@@ -3008,14 +3022,14 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
             ),
             value: readReceipts,
             onChanged: (v) => setState(() => readReceipts = v),
-            activeColor: const Color(0xFF8B5CF6),
+            activeThumbColor: const Color(0xFF8B5CF6),
           ),
           SwitchListTile(
             title: const Text('Activity Status'),
             subtitle: const Text('Let others see when you are online.'),
             value: activityStatus,
             onChanged: (v) => setState(() => activityStatus = v),
-            activeColor: const Color(0xFF8B5CF6),
+            activeThumbColor: const Color(0xFF8B5CF6),
           ),
           const Divider(),
           const Padding(
@@ -3035,7 +3049,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
             ),
             value: biometrics,
             onChanged: (v) => setState(() => biometrics = v),
-            activeColor: const Color(0xFF8B5CF6),
+            activeThumbColor: const Color(0xFF8B5CF6),
           ),
         ],
       ),
@@ -3254,8 +3268,9 @@ class UserListScreen extends StatelessWidget {
                       .doc(userIds[index])
                       .get(),
                   builder: (context, snapshot) {
-                    if (!snapshot.hasData || !snapshot.data!.exists)
+                    if (!snapshot.hasData || !snapshot.data!.exists) {
                       return const SizedBox.shrink();
+                    }
                     final user = snapshot.data!.data() as Map<String, dynamic>;
                     return ListTile(
                       leading: CircleAvatar(
@@ -3316,8 +3331,9 @@ class ActivityScreen extends ConsumerWidget {
             .doc(currentUserId)
             .snapshots(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData)
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
+          }
           final data = snapshot.data!.data() as Map<String, dynamic>?;
           if (data == null) return const Center(child: Text('No data'));
 
@@ -3343,8 +3359,9 @@ class ActivityScreen extends ConsumerWidget {
                     .doc(targetUid)
                     .get(),
                 builder: (context, userSnap) {
-                  if (!userSnap.hasData || !userSnap.data!.exists)
+                  if (!userSnap.hasData || !userSnap.data!.exists) {
                     return const SizedBox.shrink();
+                  }
                   final u = userSnap.data!.data() as Map<String, dynamic>;
                   return ListTile(
                     leading: CircleAvatar(

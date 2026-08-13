@@ -25,7 +25,7 @@ Future<void> showGlobalCreateMenu(BuildContext context, WidgetRef ref) async {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.3),
+                color: Colors.grey.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),

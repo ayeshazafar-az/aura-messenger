@@ -720,7 +720,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 style: TextStyle(
                   fontSize: 10,
                   color: isLocked
-                      ? Colors.amber.withOpacity(0.7)
+                      ? Colors.amber.withValues(alpha: 0.7)
                       : (isMe ? Colors.white70 : Colors.black45),
                 ),
               ),

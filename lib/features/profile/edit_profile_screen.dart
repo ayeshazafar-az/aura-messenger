@@ -148,7 +148,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 children: [
                   CircleAvatar(
                     radius: 50,
-                    backgroundColor: theme.primaryColor.withOpacity(0.1),
+                    backgroundColor: theme.primaryColor.withValues(alpha: 0.1),
                     backgroundImage: _profileBase64 != null
                         ? MemoryImage(base64Decode(_profileBase64!))
                         : null,
@@ -254,7 +254,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 'Only approved followers can see your posts and time-locked vaults.',
               ),
               value: _isPrivate,
-              activeColor: theme.primaryColor,
+              activeThumbColor: theme.primaryColor,
               onChanged: (val) => setState(() => _isPrivate = val),
               contentPadding: EdgeInsets.zero,
             ),

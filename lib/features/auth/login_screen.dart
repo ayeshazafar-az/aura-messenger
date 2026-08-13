@@ -165,8 +165,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   String? _validatePhone(String? value) {
     if (!_isSignUp) return null;
-    if (value == null || value.trim().isEmpty)
+    if (value == null || value.trim().isEmpty) {
       return 'Phone number is required';
+    }
     if (!RegExp(r'^\+?[0-9]{10,15}$').hasMatch(value.replaceAll(' ', ''))) {
       return 'Enter a valid phone number';
     }
@@ -182,12 +183,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   String? _validateUsername(String? value) {
     if (!_isSignUp) return null;
-    if (value == null || value.trim().length < 3)
+    if (value == null || value.trim().length < 3) {
       return 'Username must be at least 3 characters';
+    }
     if (value.contains(' ')) return 'Username cannot contain spaces';
     final RegExp validChars = RegExp(r'^[a-zA-Z0-9_]+$');
-    if (!validChars.hasMatch(value))
+    if (!validChars.hasMatch(value)) {
       return 'Only letters, numbers, and underscores allowed';
+    }
     return null;
   }
 
@@ -195,14 +198,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (value == null || value.isEmpty) return 'Password is required';
     if (_isSignUp) {
       if (value.length < 8) return 'Must be at least 8 characters long';
-      if (!value.contains(RegExp(r'[A-Z]')))
+      if (!value.contains(RegExp(r'[A-Z]'))) {
         return 'Must contain at least one uppercase letter';
-      if (!value.contains(RegExp(r'[a-z]')))
+      }
+      if (!value.contains(RegExp(r'[a-z]'))) {
         return 'Must contain at least one lowercase letter';
-      if (!value.contains(RegExp(r'[0-9]')))
+      }
+      if (!value.contains(RegExp(r'[0-9]'))) {
         return 'Must contain at least one number';
-      if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]')))
+      }
+      if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
         return 'Must contain at least one special character';
+      }
     }
     return null;
   }

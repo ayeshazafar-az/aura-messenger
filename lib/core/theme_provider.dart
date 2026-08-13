@@ -15,7 +15,6 @@ class ThemeNotifier extends Notifier<ThemeData> {
     primaryColor: const Color(0xFF8B5CF6),
     scaffoldBackgroundColor: const Color(0xFFFAFAFA),
     cardColor: const Color(0xFFFFFFFF),
-    dialogBackgroundColor: const Color(0xFFFFFFFF),
     appBarTheme: const AppBarTheme(
       backgroundColor: Colors.white,
       foregroundColor: Colors.black87,
@@ -55,14 +54,13 @@ class ThemeNotifier extends Notifier<ThemeData> {
       type: BottomNavigationBarType.fixed,
     ),
     textTheme: const TextTheme(bodySmall: TextStyle(color: Colors.black54)),
-    fontFamily: 'Inter',
+    fontFamily: 'Inter', dialogTheme: DialogThemeData(backgroundColor: const Color(0xFFFFFFFF)),
   );
 
   static final ThemeData _darkTheme = ThemeData.dark().copyWith(
     primaryColor: const Color(0xFF8B5CF6),
     scaffoldBackgroundColor: const Color(0xFF121212),
     cardColor: const Color(0xFF1E1E1E),
-    dialogBackgroundColor: const Color(0xFF1E1E1E),
     appBarTheme: const AppBarTheme(
       backgroundColor: Color(0xFF1E1E1E),
       foregroundColor: Colors.white,
@@ -99,7 +97,7 @@ class ThemeNotifier extends Notifier<ThemeData> {
       elevation: 16,
       type: BottomNavigationBarType.fixed,
     ),
-    textTheme: const TextTheme(bodySmall: TextStyle(color: Colors.white54)),
+    textTheme: const TextTheme(bodySmall: TextStyle(color: Colors.white54)), dialogTheme: DialogThemeData(backgroundColor: const Color(0xFF1E1E1E)),
   );
 
   void setLightMode() {

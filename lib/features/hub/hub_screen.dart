@@ -127,10 +127,11 @@ class HubScreen extends ConsumerWidget {
                         .where('users', arrayContains: currentUser.uid)
                         .snapshots(),
                     builder: (context, snapshot) {
-                      if (snapshot.hasError)
+                      if (snapshot.hasError) {
                         return const Center(
                           child: Text('Error loading active chats'),
                         );
+                      }
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
                       }
@@ -156,7 +157,7 @@ class HubScreen extends ConsumerWidget {
                               Icon(
                                 Icons.chat_bubble_outline,
                                 size: 64,
-                                color: Colors.grey.withOpacity(0.5),
+                                color: Colors.grey.withValues(alpha: 0.5),
                               ),
                               const SizedBox(height: 16),
                               const Text(
@@ -184,8 +185,9 @@ class HubScreen extends ConsumerWidget {
                             orElse: () => '',
                           );
 
-                          if (otherUserId.isEmpty)
+                          if (otherUserId.isEmpty) {
                             return const SizedBox.shrink();
+                          }
 
                           return FutureBuilder<DocumentSnapshot>(
                             future: FirebaseFirestore.instance
