@@ -4,6 +4,13 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	
+	<!-- Camera and Microphone dependencies for WebRTC video calling -->
+	<key>NSCameraUsageDescription</key>
+	<string>We need access to your camera to enable video calling features.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need access to your microphone to enable audio calling features.</string>
+
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

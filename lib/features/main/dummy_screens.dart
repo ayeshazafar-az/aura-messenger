@@ -1253,10 +1253,14 @@ class _SearchScreenState extends State<SearchScreen> {
                 }
                 final posts = snapshot.data!.docs;
                 if (posts.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Text(
                       'No Reels Yet',
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(
+                        color:
+                            Theme.of(context).textTheme.bodyMedium?.color ??
+                            Colors.white,
+                      ),
                     ),
                   );
                 }
@@ -1407,7 +1411,7 @@ class _VaultsScreenState extends ConsumerState<VaultsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.black87,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -1642,7 +1646,7 @@ class _VaultsScreenState extends ConsumerState<VaultsScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F12),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text(
           'Encrypted Vaults',
@@ -1654,7 +1658,8 @@ class _VaultsScreenState extends ConsumerState<VaultsScreen> {
             fontFamily: 'Roboto',
           ),
         ),
-        backgroundColor: const Color(0xFF0F0F12),
+        backgroundColor:
+            Theme.of(context).appBarTheme.backgroundColor ?? Colors.transparent,
         elevation: 0,
         actions: [
           IconButton(
@@ -1666,7 +1671,7 @@ class _VaultsScreenState extends ConsumerState<VaultsScreen> {
                   final TextEditingController nameController =
                       TextEditingController();
                   return AlertDialog(
-                    backgroundColor: const Color(0xFF1B1B1E),
+                    backgroundColor: Theme.of(context).dialogBackgroundColor,
                     title: const Text(
                       'New Vault',
                       style: TextStyle(color: Colors.white),
@@ -2260,10 +2265,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
           IconButton(
             icon: Icon(Icons.menu, color: theme.iconTheme.color, size: 28),
-            onPressed: () => Navigator.push(
+            onPressed: () => Navigator.of(
               context,
-              MaterialPageRoute(builder: (_) => const SettingsScreen()),
-            ),
+              rootNavigator: true,
+            ).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
           ),
         ],
         elevation: 0,
@@ -2867,13 +2872,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   );
                 },
               ),
-              const Center(
+              Center(
                 child: Text(
                   'No Reels Yet',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey,
+                    color:
+                        Theme.of(context).textTheme.bodySmall?.color ??
+                        Colors.grey,
                   ),
                 ),
               ),

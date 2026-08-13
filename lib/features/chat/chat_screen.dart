@@ -8,6 +8,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../../core/auth_service.dart';
 import '../../core/chat_service.dart';
+import '../../core/gemini_service.dart';
+import '../../core/post_service.dart';
+import 'call_screen.dart';
 
 class MockCallScreen extends StatefulWidget {
   final bool isVideo;
@@ -615,16 +618,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                     builder: (context) => GestureDetector(
                                       onTap: () => Navigator.pop(context),
                                       child: Scaffold(
-                                        backgroundColor: Colors.black,
+                                        backgroundColor: Theme.of(
+                                          context,
+                                        ).scaffoldBackgroundColor,
                                         appBar: AppBar(
-                                          backgroundColor: Colors.black,
-                                          iconTheme: const IconThemeData(
-                                            color: Colors.white,
-                                          ),
-                                          title: const Text(
+                                          backgroundColor:
+                                              Theme.of(
+                                                context,
+                                              ).appBarTheme.backgroundColor ??
+                                              Colors.transparent,
+                                          iconTheme: Theme.of(
+                                            context,
+                                          ).iconTheme,
+                                          title: Text(
                                             'Photo',
                                             style: TextStyle(
-                                              color: Colors.white,
+                                              color: Theme.of(
+                                                context,
+                                              ).textTheme.bodyMedium?.color,
                                             ),
                                           ),
                                         ),
@@ -858,6 +869,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             Expanded(
               child: TextField(
                 controller: _controller,
+                style: TextStyle(
+                  color:
+                      Theme.of(context).textTheme.bodyMedium?.color ??
+                      Colors.white,
+                ),
                 decoration: InputDecoration(
                   hintText: 'Message',
                   filled: true,
@@ -1044,30 +1060,46 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             actions: [
               IconButton(
                 icon: Icon(Icons.call, color: Theme.of(context).primaryColor),
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => MockCallScreen(
-                      isVideo: false,
-                      name: widget.receiverName,
+                onPressed: () {
+                  final u = ref.read(authServiceProvider).currentUser;
+                  if (u == null) return;
+                  final uids = [u.uid, widget.receiverId];
+                  uids.sort();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => CallScreen(
+                        callId: uids.join('_'),
+                        localUserId: u.uid,
+                        localUserName: u.email?.split('@').first ?? 'User',
+                        isVideoCall: false,
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
               IconButton(
                 icon: Icon(
                   Icons.videocam,
                   color: Theme.of(context).primaryColor,
                 ),
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => MockCallScreen(
-                      isVideo: true,
-                      name: widget.receiverName,
+                onPressed: () {
+                  final u = ref.read(authServiceProvider).currentUser;
+                  if (u == null) return;
+                  final uids = [u.uid, widget.receiverId];
+                  uids.sort();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => CallScreen(
+                        callId: uids.join('_'),
+                        localUserId: u.uid,
+                        localUserName: u.email?.split('@').first ?? 'User',
+                        isVideoCall: true,
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
               PopupMenuButton<String>(
                 icon: Icon(
