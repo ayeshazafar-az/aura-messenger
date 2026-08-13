@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "227443127711",
+    "firebase_url": "https://aura-88c78-default-rtdb.firebaseio.com",
     "project_id": "aura-88c78",
     "storage_bucket": "aura-88c78.firebasestorage.app"
   },
@@ -12,7 +13,20 @@
           "package_name": "com.ayeshazafar.aura"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "227443127711-8ja22el53crfvuhsv2d338tfvg4cfp9p.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ayeshazafar.aura",
+            "certificate_hash": "4989e2e1985c152b9e3d846f2e1a63cd77238fd8"
+          }
+        },
+        {
+          "client_id": "227443127711-h4440p34b2hs99riuelffr4omeorh6j9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBAQ4ZHsAO7JUQ_YvnTtpFuXJxb2j96jOY"
@@ -20,7 +34,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "227443127711-h4440p34b2hs99riuelffr4omeorh6j9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
