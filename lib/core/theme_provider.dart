@@ -13,7 +13,7 @@ class ThemeNotifier extends Notifier<ThemeData> {
   static final ThemeData _defaultTheme = ThemeData(
     useMaterial3: false,
     primaryColor: const Color(0xFF8B5CF6),
-    scaffoldBackgroundColor: const Color(0xFFFAFAFA),
+    scaffoldBackgroundColor: const Color(0xFFF3F4F6),
     cardColor: const Color(0xFFFFFFFF),
     appBarTheme: const AppBarTheme(
       backgroundColor: Colors.white,
@@ -43,7 +43,7 @@ class ThemeNotifier extends Notifier<ThemeData> {
     colorScheme: const ColorScheme.light(
       primary: Color(0xFF8B5CF6),
       secondary: Color(0xFFF43F5E),
-      surface: Color(0xFFFAFAFA),
+      surface: Color(0xFFF3F4F6),
     ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: Colors.white,
@@ -54,7 +54,8 @@ class ThemeNotifier extends Notifier<ThemeData> {
       type: BottomNavigationBarType.fixed,
     ),
     textTheme: const TextTheme(bodySmall: TextStyle(color: Colors.black54)),
-    fontFamily: 'Inter', dialogTheme: DialogThemeData(backgroundColor: const Color(0xFFFFFFFF)),
+    fontFamily: 'Inter',
+    dialogTheme: DialogThemeData(backgroundColor: const Color(0xFFFFFFFF)),
   );
 
   static final ThemeData _darkTheme = ThemeData.dark().copyWith(
@@ -97,7 +98,8 @@ class ThemeNotifier extends Notifier<ThemeData> {
       elevation: 16,
       type: BottomNavigationBarType.fixed,
     ),
-    textTheme: const TextTheme(bodySmall: TextStyle(color: Colors.white54)), dialogTheme: DialogThemeData(backgroundColor: const Color(0xFF1E1E1E)),
+    textTheme: const TextTheme(bodySmall: TextStyle(color: Colors.white54)),
+    dialogTheme: DialogThemeData(backgroundColor: const Color(0xFF1E1E1E)),
   );
 
   void setLightMode() {

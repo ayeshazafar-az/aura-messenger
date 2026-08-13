@@ -317,13 +317,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             builder: (_) => GestureDetector(
               onTap: () => Navigator.pop(context),
               child: Scaffold(
-                backgroundColor: Colors.black,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                 appBar: AppBar(
-                  backgroundColor: Colors.black,
-                  iconTheme: const IconThemeData(color: Colors.white),
-                  title: const Text(
+                  backgroundColor:
+                      Theme.of(context).appBarTheme.backgroundColor ??
+                      Colors.transparent,
+                  iconTheme: Theme.of(context).iconTheme,
+                  title: Text(
                     'Photo',
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                    ),
                   ),
                 ),
                 body: Center(
@@ -898,13 +902,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               showDialog(
                                 context: context,
                                 builder: (context) => Scaffold(
-                                  backgroundColor: Colors.black,
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).scaffoldBackgroundColor,
                                   appBar: AppBar(
-                                    backgroundColor: Colors.black,
+                                    backgroundColor:
+                                        Theme.of(
+                                          context,
+                                        ).appBarTheme.backgroundColor ??
+                                        Colors.transparent,
                                     elevation: 0,
-                                    iconTheme: const IconThemeData(
-                                      color: Colors.white,
-                                    ),
+                                    iconTheme: Theme.of(context).iconTheme,
                                   ),
                                   body: Stack(
                                     children: [
@@ -1131,7 +1139,7 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -2527,7 +2535,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                       'Facebook',
                                       style: TextStyle(fontSize: 12),
                                     ),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Facebook integration coming soon!',
+                                          ),
+                                        ),
+                                      );
+                                    },
                                     padding: EdgeInsets.zero,
                                     visualDensity: VisualDensity.compact,
                                   ),
@@ -2545,7 +2563,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                       'Instagram',
                                       style: TextStyle(fontSize: 12),
                                     ),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Instagram integration coming soon!',
+                                          ),
+                                        ),
+                                      );
+                                    },
                                     padding: EdgeInsets.zero,
                                     visualDensity: VisualDensity.compact,
                                   ),
@@ -2563,7 +2591,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                       'WhatsApp',
                                       style: TextStyle(fontSize: 12),
                                     ),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'WhatsApp integration coming soon!',
+                                          ),
+                                        ),
+                                      );
+                                    },
                                     padding: EdgeInsets.zero,
                                     visualDensity: VisualDensity.compact,
                                   ),
@@ -2712,7 +2750,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   minimumSize: const Size(40, 40),
                                   padding: EdgeInsets.zero,
                                 ),
-                                onPressed: () {},
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Friend request functionality coming soon!',
+                                      ),
+                                    ),
+                                  );
+                                },
                                 child: Icon(
                                   Icons.person_add_outlined,
                                   color: theme.iconTheme.color,
@@ -2870,6 +2916,22 @@ class SettingsScreen extends ConsumerWidget {
           style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24),
         ),
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(
+              Theme.of(context).brightness == Brightness.dark
+                  ? Icons.light_mode
+                  : Icons.dark_mode,
+            ),
+            onPressed: () {
+              if (Theme.of(context).brightness == Brightness.dark) {
+                ref.read(themeProvider.notifier).setLightMode();
+              } else {
+                ref.read(themeProvider.notifier).setDarkMode();
+              }
+            },
+          ),
+        ],
       ),
       body: ListView(
         children: [
