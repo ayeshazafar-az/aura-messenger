@@ -213,82 +213,136 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ListTile(
-          leading: CircleAvatar(
-            backgroundColor: theme.primaryColor.withOpacity(0.1),
-            child: Icon(Icons.person, color: theme.primaryColor),
-          ),
-          title: Text(
-            post['uploaderId'].toString().substring(0, 5),
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          trailing: isOwner
-              ? PopupMenuButton<String>(
-                  onSelected: (value) async {
-                    if (value == 'delete') {
-                      await FirebaseFirestore.instance
-                          .collection('posts')
-                          .doc(postId)
-                          .delete();
-                      if (mounted)
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Post deleted')),
-                        );
-                    } else if (value == 'edit') {
-                      final TextEditingController editController =
-                          TextEditingController(text: post['caption']);
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Edit Caption'),
-                          content: TextField(
-                            controller: editController,
-                            maxLines: 3,
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('Cancel'),
+        FutureBuilder<DocumentSnapshot>(
+          future: FirebaseFirestore.instance
+              .collection('users')
+              .doc(post['uploaderId'])
+              .get(),
+          builder: (context, userSnap) {
+            final userData = userSnap.hasData && userSnap.data!.exists
+                ? userSnap.data!.data() as Map<String, dynamic>
+                : null;
+            final displayName =
+                userData?['name'] ??
+                userData?['username'] ??
+                post['uploaderId'].toString().substring(0, 6);
+            final username = userData?['username'];
+            return ListTile(
+              leading: CircleAvatar(
+                backgroundColor: theme.primaryColor.withValues(alpha: 0.1),
+                backgroundImage: userData?['profileBase64'] != null
+                    ? MemoryImage(base64Decode(userData!['profileBase64']))
+                    : null,
+                child: userData?['profileBase64'] == null
+                    ? Icon(Icons.person, color: theme.primaryColor)
+                    : null,
+              ),
+              title: Text(
+                displayName.toString(),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: username != null
+                  ? Text(
+                      '@$username',
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    )
+                  : null,
+              trailing: isOwner
+                  ? PopupMenuButton<String>(
+                      onSelected: (value) async {
+                        if (value == 'delete') {
+                          await FirebaseFirestore.instance
+                              .collection('posts')
+                              .doc(postId)
+                              .delete();
+                          if (mounted)
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Post deleted')),
+                            );
+                        } else if (value == 'edit') {
+                          final TextEditingController editController =
+                              TextEditingController(text: post['caption']);
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Edit Caption'),
+                              content: TextField(
+                                controller: editController,
+                                maxLines: 3,
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Cancel'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    Navigator.pop(context);
+                                    await FirebaseFirestore.instance
+                                        .collection('posts')
+                                        .doc(postId)
+                                        .update({
+                                          'caption': editController.text.trim(),
+                                        });
+                                  },
+                                  child: const Text('Save'),
+                                ),
+                              ],
                             ),
-                            ElevatedButton(
-                              onPressed: () async {
-                                Navigator.pop(context);
-                                await FirebaseFirestore.instance
-                                    .collection('posts')
-                                    .doc(postId)
-                                    .update({
-                                      'caption': editController.text.trim(),
-                                    });
-                              },
-                              child: const Text('Save'),
-                            ),
-                          ],
+                          );
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'edit',
+                          child: Text('Edit Caption'),
                         ),
-                      );
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: Text('Edit Caption'),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Text(
-                        'Delete Post',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  ],
-                )
-              : const Icon(Icons.more_vert),
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Text(
+                            'Delete Post',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    )
+                  : const Icon(Icons.more_vert),
+            );
+          },
         ),
-        AspectRatio(
-          aspectRatio: 1.0,
-          child: Image.memory(
-            base64Decode(post['imageBase64']),
-            width: double.infinity,
-            fit: BoxFit.cover,
+        GestureDetector(
+          onTap: () => showDialog(
+            context: context,
+            builder: (_) => GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Scaffold(
+                backgroundColor: Colors.black,
+                appBar: AppBar(
+                  backgroundColor: Colors.black,
+                  iconTheme: const IconThemeData(color: Colors.white),
+                  title: const Text(
+                    'Photo',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                body: Center(
+                  child: InteractiveViewer(
+                    child: Image.memory(
+                      base64Decode(post['imageBase64']),
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          child: AspectRatio(
+            aspectRatio: 1.0,
+            child: Image.memory(
+              base64Decode(post['imageBase64']),
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
           ),
         ),
         Padding(
@@ -319,7 +373,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               style: TextStyle(color: theme.textTheme.bodyMedium?.color),
               children: [
                 TextSpan(
-                  text: '${post['uploaderId'].toString().substring(0, 5)} ',
+                  text:
+                      '${post['uploaderName'] ?? post['uploaderId'].toString().substring(0, 6)} ',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 TextSpan(text: post['caption'] ?? ''),
@@ -348,15 +403,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             onPressed: () => showGlobalCreateMenu(context, ref),
           ),
-          IconButton(
-            icon: Icon(
-              Icons.favorite_border,
-              color: Theme.of(context).iconTheme.color,
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ActivityScreen()),
+          StreamBuilder<DocumentSnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('users')
+                .doc(ref.read(authServiceProvider).currentUser?.uid ?? '')
+                .snapshots(),
+            builder: (context, snap) {
+              final data = snap.data?.data() as Map<String, dynamic>?;
+              final requestCount =
+                  (data?['followRequests'] as List?)?.length ?? 0;
+              return Badge(
+                isLabelVisible: requestCount > 0,
+                label: Text('$requestCount'),
+                child: IconButton(
+                  icon: Icon(
+                    Icons.favorite_border,
+                    color: Theme.of(context).iconTheme.color,
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ActivityScreen()),
+                    );
+                  },
+                ),
               );
             },
           ),

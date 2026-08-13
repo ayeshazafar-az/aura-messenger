@@ -7,6 +7,7 @@ import 'dart:io';
 
 import '../../core/auth_service.dart';
 import '../../core/vault_service.dart';
+import '../../core/chat_service.dart';
 
 class VaultDetailsScreen extends ConsumerStatefulWidget {
   final String vaultId;
@@ -63,6 +64,101 @@ class _VaultDetailsScreenState extends ConsumerState<VaultDetailsScreen> {
       _noteController.clear();
       Navigator.pop(context);
     }
+  }
+
+  Future<void> _sendVaultTextToChat(String text) async {
+    final currentUser = ref.read(authServiceProvider).currentUser;
+    if (currentUser == null) return;
+
+    // Fetch the user's chat contacts from Firestore
+    final chatRooms = await FirebaseFirestore.instance
+        .collection('chat_rooms')
+        .where('users', arrayContains: currentUser.uid)
+        .get();
+
+    if (!mounted) return;
+
+    if (chatRooms.docs.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No active chats to send to.')),
+      );
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1B1B1E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                'Send to Chat',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            ...chatRooms.docs.map((room) {
+              final users = List<String>.from(room.data()['users'] ?? []);
+              final receiverId = users.firstWhere(
+                (id) => id != currentUser.uid,
+                orElse: () => '',
+              );
+              if (receiverId.isEmpty) return const SizedBox.shrink();
+              return FutureBuilder<DocumentSnapshot>(
+                future: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(receiverId)
+                    .get(),
+                builder: (context, snap) {
+                  final name = snap.hasData && snap.data!.exists
+                      ? ((snap.data!.data() as Map)['name'] ??
+                            (snap.data!.data() as Map)['username'] ??
+                            receiverId)
+                      : receiverId;
+                  return ListTile(
+                    leading: const CircleAvatar(child: Icon(Icons.person)),
+                    title: Text(
+                      name.toString(),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    onTap: () async {
+                      Navigator.pop(context);
+                      await ref
+                          .read(chatServiceProvider)
+                          .sendMessage(
+                            receiverId,
+                            text,
+                            null,
+                            currentUser.uid,
+                            isVaultMessage: true,
+                          );
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('🔐 Vault note sent!'),
+                            backgroundColor: Color(0xFF8B5CF6),
+                          ),
+                        );
+                      }
+                    },
+                  );
+                },
+              );
+            }),
+            const SizedBox(height: 16),
+          ],
+        );
+      },
+    );
   }
 
   void _showAddNoteDialog() {
@@ -166,37 +262,53 @@ class _VaultDetailsScreenState extends ConsumerState<VaultDetailsScreen> {
                   itemBuilder: (context, index) {
                     final data = items[index].data() as Map<String, dynamic>;
 
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1B1B1E),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (data['text'] != null)
-                            Text(
-                              data['text'],
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                              ),
-                            ),
-                          if (data['imageBase64'] != null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.memory(
-                                  base64Decode(data['imageBase64']),
-                                  fit: BoxFit.cover,
+                    return GestureDetector(
+                      onLongPress: data['text'] != null
+                          ? () => _sendVaultTextToChat(data['text'])
+                          : null,
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1B1B1E),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.white12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (data['text'] != null)
+                              Text(
+                                data['text'],
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
                                 ),
                               ),
-                            ),
-                        ],
+                            if (data['text'] != null)
+                              const Padding(
+                                padding: EdgeInsets.only(top: 6),
+                                child: Text(
+                                  'Long-press to send to chat 🔐',
+                                  style: TextStyle(
+                                    color: Colors.white24,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ),
+                            if (data['imageBase64'] != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.memory(
+                                    base64Decode(data['imageBase64']),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     );
                   },

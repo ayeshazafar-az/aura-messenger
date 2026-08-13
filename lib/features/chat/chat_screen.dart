@@ -606,7 +606,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             child: ConstrainedBox(
                               constraints: BoxConstraints(
                                 maxWidth:
-                                    MediaQuery.of(context).size.width * 0.75,
+                                    MediaQuery.of(context).size.width * 0.65,
                               ),
                               child: GestureDetector(
                                 onTap: () {
@@ -616,6 +616,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                       onTap: () => Navigator.pop(context),
                                       child: Scaffold(
                                         backgroundColor: Colors.black,
+                                        appBar: AppBar(
+                                          backgroundColor: Colors.black,
+                                          iconTheme: const IconThemeData(
+                                            color: Colors.white,
+                                          ),
+                                          title: const Text(
+                                            'Photo',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
                                         body: Center(
                                           child: InteractiveViewer(
                                             child: Image.memory(
@@ -628,10 +640,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                     ),
                                   );
                                 },
-                                child: Image.memory(
-                                  base64Decode(data['imageBase64']),
-                                  fit: BoxFit
-                                      .contain, // natural aspect uncropped
+                                child: SizedBox(
+                                  height: 220,
+                                  child: Image.memory(
+                                    base64Decode(data['imageBase64']),
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                  ),
                                 ),
                               ),
                             ),
@@ -642,16 +657,48 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           : CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        if (data['isVaultMessage'] == true)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Icon(
+                                  Icons.lock,
+                                  size: 12,
+                                  color: Colors.amberAccent,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Vault Message',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.amberAccent,
+                                    letterSpacing: 1.0,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         Text(
                           data['message'] ?? '',
                           style: TextStyle(
                             fontSize: 16,
-                            color: isMe
-                                ? Colors.white
-                                : Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium?.color ??
-                                      Colors.black87,
+                            fontStyle: data['isVaultMessage'] == true
+                                ? FontStyle.italic
+                                : FontStyle.normal,
+                            fontFamily: data['isVaultMessage'] == true
+                                ? 'monospace'
+                                : null,
+                            color: data['isVaultMessage'] == true
+                                ? Colors.amberAccent.shade100
+                                : (isMe
+                                      ? Colors.white
+                                      : Theme.of(
+                                              context,
+                                            ).textTheme.bodyMedium?.color ??
+                                            Colors.black87),
                           ),
                         ),
                         if (data['isEdited'] == true)

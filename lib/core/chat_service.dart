@@ -29,8 +29,9 @@ class ChatService {
     String receiverId,
     String message,
     DateTime? unlockTime,
-    String senderId,
-  ) async {
+    String senderId, {
+    bool isVaultMessage = false,
+  }) async {
     final String chatRoomId = _getChatRoomId(senderId, receiverId);
 
     final roomDoc = _firestore.collection('chat_rooms').doc(chatRoomId);
@@ -57,6 +58,7 @@ class ChatService {
       'message': message,
       'timestamp': FieldValue.serverTimestamp(),
       'unlockTime': unlockTime?.millisecondsSinceEpoch,
+      if (isVaultMessage) 'isVaultMessage': true,
     };
 
     await roomDoc.collection('messages').add(newMessage);
