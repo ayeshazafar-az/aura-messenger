@@ -98,7 +98,10 @@ class ThemeNotifier extends Notifier<ThemeData> {
       elevation: 16,
       type: BottomNavigationBarType.fixed,
     ),
-    textTheme: const TextTheme(bodySmall: TextStyle(color: Colors.white54)),
+    textTheme: const TextTheme(
+      bodySmall: TextStyle(color: Colors.white54),
+      bodyMedium: TextStyle(color: Colors.white),
+    ),
     dialogTheme: DialogThemeData(backgroundColor: const Color(0xFF1E1E1E)),
   );
 

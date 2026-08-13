@@ -1980,9 +1980,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.black54),
+              style: TextStyle(
+                color:
+                    Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey,
+              ),
             ),
           ),
           ElevatedButton(
@@ -2183,15 +2186,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(fontSize: 14, color: Colors.black54),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color:
+                          Theme.of(context).textTheme.bodySmall?.color ??
+                          Colors.grey,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                      color:
+                          Theme.of(context).textTheme.bodyMedium?.color ??
+                          Colors.black,
                     ),
                   ),
                 ],
@@ -2488,11 +2498,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     ),
                                     onPressed: () =>
                                         _showEditProfileSheet(userData),
-                                    child: const Text(
+                                    child: Text(
                                       'Edit Profile',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.black,
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).textTheme.bodyMedium?.color ??
+                                            Colors.black,
                                       ),
                                     ),
                                   ),
