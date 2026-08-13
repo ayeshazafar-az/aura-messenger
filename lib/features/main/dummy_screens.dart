@@ -760,9 +760,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     child: myStories.isEmpty
                                         ? CircleAvatar(
                                             radius: 32,
-                                            backgroundColor: Theme.of(
-                                              context,
-                                            ).primaryColor.withValues(alpha: 0.1),
+                                            backgroundColor: Theme.of(context)
+                                                .primaryColor
+                                                .withValues(alpha: 0.1),
                                             child: Icon(
                                               Icons.person,
                                               color: Theme.of(
@@ -3199,20 +3199,45 @@ class HelpSupportScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Help & Support')),
       body: ListView(
-        children: const [
+        children: [
           ListTile(
-            leading: Icon(Icons.help_center_outlined, color: Color(0xFF8B5CF6)),
-            title: Text('Help Center'),
-            trailing: Icon(Icons.open_in_new, size: 16),
+            leading: const Icon(
+              Icons.help_center_outlined,
+              color: Color(0xFF8B5CF6),
+            ),
+            title: const Text('Help Center'),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const HelpCenterScreen()),
+              );
+            },
           ),
           ListTile(
-            leading: Icon(Icons.mail_outline, color: Color(0xFF8B5CF6)),
-            title: Text('Contact Us'),
-            trailing: Icon(Icons.arrow_forward_ios, size: 16),
+            leading: const Icon(Icons.mail_outline, color: Color(0xFF8B5CF6)),
+            title: const Text('Contact Us'),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ContactUsScreen()),
+              );
+            },
           ),
           ListTile(
-            leading: Icon(Icons.article_outlined, color: Color(0xFF8B5CF6)),
-            title: Text('Terms and Privacy Policy'),
+            leading: const Icon(
+              Icons.article_outlined,
+              color: Color(0xFF8B5CF6),
+            ),
+            title: const Text('Terms and Privacy Policy'),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const TermsPrivacyScreen()),
+              );
+            },
           ),
           Divider(),
           Padding(
@@ -3228,10 +3253,205 @@ class HelpSupportScreen extends StatelessWidget {
                   ),
                   Text(
                     'Version 1.0.0 (Release build)',
-                    style: TextStyle(color: Colors.black54),
+                    style: TextStyle(color: Colors.grey),
                   ),
                 ],
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class HelpCenterScreen extends StatelessWidget {
+  const HelpCenterScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Help Center')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: const [
+          Text(
+            'Frequently Asked Questions',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 16),
+          _HelpFaqItem(
+            question: 'How do I upload a Story?',
+            answer:
+                'Go to the Home tab and tap the "+" icon on the "Your Story" circle at the top of the screen. You can add images from your gallery.',
+          ),
+          _HelpFaqItem(
+            question: 'What are Secure Vaults?',
+            answer:
+                'Vaults allow you to save encrypted media and text locally. You can lock them and even send them into a chat session with an unlock timer!',
+          ),
+          _HelpFaqItem(
+            question: 'How do I change my theme?',
+            answer:
+                'Go to Profile -> Settings -> Appearance. You can pick between Light and Dark mode, and change your primary accent color.',
+          ),
+          _HelpFaqItem(
+            question: 'Who can see my profile?',
+            answer:
+                'By default, your profile is public. You can switch to a private account under Privacy Settings so only approved followers can see your content.',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HelpFaqItem extends StatelessWidget {
+  final String question;
+  final String answer;
+  const _HelpFaqItem({required this.question, required this.answer});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            question,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+              color: Color(0xFF8B5CF6),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(answer, style: const TextStyle(height: 1.4, fontSize: 14)),
+        ],
+      ),
+    );
+  }
+}
+
+class ContactUsScreen extends StatelessWidget {
+  const ContactUsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Contact Us')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Icon(Icons.support_agent, size: 64, color: Color(0xFF8B5CF6)),
+            const SizedBox(height: 24),
+            const Text(
+              'We\'d love to hear from you!',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'If you have any questions, encounter a bug, or just want to give us feedback, feel free to reach out to the development team.',
+              textAlign: TextAlign.center,
+              style: TextStyle(height: 1.5, fontSize: 16),
+            ),
+            const SizedBox(height: 32),
+            Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
+              ),
+              child: ListTile(
+                leading: const Icon(Icons.email, color: Color(0xFF8B5CF6)),
+                title: const Text('Email Support'),
+                subtitle: const Text('support@auraapp.com'),
+                onTap: () {},
+              ),
+            ),
+            const SizedBox(height: 12),
+            Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
+              ),
+              child: ListTile(
+                leading: const Icon(Icons.public, color: Color(0xFF8B5CF6)),
+                title: const Text('Developer Website'),
+                subtitle: const Text('https://aura-messenger.com'),
+                onTap: () {},
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class TermsPrivacyScreen extends StatelessWidget {
+  const TermsPrivacyScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Terms & Privacy')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: const [
+          Text(
+            'Terms of Service',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF8B5CF6),
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Welcome to Aura Messenger. By using our application, you agree to these terms. Aura is a platform for secure communication, media sharing, and vaults. You agree not to misuse our services or help anyone else do so. You are responsible for the content you post.',
+            style: TextStyle(height: 1.5),
+          ),
+          SizedBox(height: 24),
+          Text(
+            'Privacy Policy',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF8B5CF6),
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Data Collection:',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          Text(
+            'We collect information you provide directly, such as when you create an account, update your profile, or send messages. We use base64 encoding to store images in standard Firestore structures.',
+            style: TextStyle(height: 1.5),
+          ),
+          SizedBox(height: 8),
+          Text('Data Security:', style: TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            'We use industry standard mechanics to protect your data. "Vaults" provide an extra layer of privacy by visually obscuring secure texts until intentionally unlocked via the UI.',
+            style: TextStyle(height: 1.5),
+          ),
+          SizedBox(height: 8),
+          Text('Sharing:', style: TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            'We do not sell your personal data to non-affiliated third parties. Your chat contexts and messages remain between you and your participants.',
+            style: TextStyle(height: 1.5),
+          ),
+          SizedBox(height: 40),
+          Center(
+            child: Text(
+              'Last updated: August 2026',
+              style: TextStyle(color: Colors.grey, fontSize: 12),
             ),
           ),
         ],
