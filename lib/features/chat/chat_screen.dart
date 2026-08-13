@@ -1024,7 +1024,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
                 onSelected: (val) {
                   if (val == 'delete') {
-                    _confirmDeleteChat(currentUser!.uid);
+                    _confirmDeleteChat(currentUser.uid);
                   }
                   if (val == 'theme') {
                     _showThemeSelector(currentUser.uid);
@@ -1059,12 +1059,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 child: StreamBuilder<QuerySnapshot>(
                   stream: ref
                       .watch(chatServiceProvider)
-                      .getMessages(widget.receiverId, currentUser!.uid),
+                      .getMessages(widget.receiverId, currentUser.uid),
                   builder: (context, snapshot) {
-                    if (snapshot.hasError)
+                    if (snapshot.hasError) {
                       return const Center(child: Text('Error'));
-                    if (snapshot.connectionState == ConnectionState.waiting)
+                    }
+                    if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
+                    }
 
                     final msgs = snapshot.data!.docs;
 
