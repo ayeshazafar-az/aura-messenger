@@ -24,15 +24,28 @@ Aura Messenger is a premium, real-time secure messaging and social networking pl
 4.  Export production APK: `flutter build apk` (Generates optimized binary < 50MB)
 
 ## 📸 Application Gallery
-Here is a showcase of the core architecture and UI/UX flowing seamlessly:
+Here is a showcase of the core architecture and UI/UX flowing seamlessly.
 
-| The Main Hub (Social Feed) | Private Account & Profile | Activity & Follow Engine |
-| :---: | :---: | :---: |
-| <img src="assets/01_Main_Social_Feed.jpeg" width="250"/> | <img src="assets/02_Private_Account_Profile.jpeg" width="250"/> | <img src="assets/03_Follow_Activity_Requests.jpeg" width="250"/> |
+### 1. The Main Hub (Social Feed) 
+![Social Feed](assets/01_Main_Social_Feed.jpeg)
 
-| Active Real-Time Chat | Ephemeral Secure Vault Media | 4-Digit Vault PIN Engine | WebRTC Native Video Call |
-| :---: | :---: | :---: | :---: |
-| <img src="assets/04_RealTime_Chat_Bubbles.jpeg" width="200"/> | <img src="assets/05_Expiring_Vault_Messages.jpeg" width="200"/> | <img src="assets/06_4_Digit_Vault_Gateway.jpeg" width="200"/> | <img src="assets/07_ZegoCloud_Auddio&Video_Calling.jpeg" width="200"/> |
+### 2. Private Account & Profile
+![Private Account](assets/02_Private_Account_Profile.jpeg)
+
+### 3. Activity & Follow Engine
+![Activity Engine](assets/03_Follow_Activity_Requests.jpeg)
+
+### 4. Active Real-Time Chat
+![Real-Time Chat](assets/04_RealTime_Chat_Bubbles.jpeg)
+
+### 5. Ephemeral Secure Vault Media
+![Vault Media](assets/05_Expiring_Vault_Messages.jpeg)
+
+### 6. 4-Digit Vault PIN Engine
+![Vault Gateway](assets/06_4_Digit_Vault_Gateway.jpeg)
+
+### 7. WebRTC Native Video Call
+![Video Call](assets/07_ZegoCloud_Auddio&Video_Calling.jpeg)
 
 ---
 *Developed & Designed by Ayesha Zafar*
