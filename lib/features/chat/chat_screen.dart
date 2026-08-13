@@ -8,8 +8,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../../core/auth_service.dart';
 import '../../core/chat_service.dart';
-import '../../core/gemini_service.dart';
-import '../../core/post_service.dart';
 import 'call_screen.dart';
 
 class MockCallScreen extends StatefulWidget {

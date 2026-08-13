@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.ayeshazafar.aura.aura"
-    compileSdk = 34
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
