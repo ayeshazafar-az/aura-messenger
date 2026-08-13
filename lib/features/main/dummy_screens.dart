@@ -476,7 +476,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    itemCount: otherStories.length + 1,
+                    itemCount: (() {
+                      final distinct = <String>{};
+                      for (final d in otherStories) {
+                        distinct.add(
+                          (d.data() as Map<String, dynamic>)['uploaderId']
+                              as String,
+                        );
+                      }
+                      return distinct.length + 1;
+                    })(),
                     itemBuilder: (context, index) {
                       if (index == 0) {
                         return Container(
@@ -820,11 +829,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 ],
                               ),
                               const SizedBox(height: 6),
-                              const Text(
+                              Text(
                                 'Your Story',
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.black54,
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodySmall?.color,
                                 ),
                               ),
                             ],
@@ -832,104 +844,230 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         );
                       }
 
-                      final data =
-                          otherStories[index - 1].data()
-                              as Map<String, dynamic>;
-                      final base64String = data['imageBase64'];
-                      final uploaderId = data['uploaderId']
-                          .toString()
-                          .substring(0, 5);
-                      final storyId = otherStories[index - 1].id;
+                      // Group other stories by uploader
+                      final Map<String, List<QueryDocumentSnapshot>> grouped =
+                          {};
+                      for (final doc in otherStories) {
+                        final uid =
+                            (doc.data() as Map<String, dynamic>)['uploaderId']
+                                as String;
+                        grouped.putIfAbsent(uid, () => []).add(doc);
+                      }
+                      final uploaderIds = grouped.keys.toList();
+                      final storyIndex = index - 1;
+                      final uploaderId = uploaderIds[storyIndex];
+                      final uploaderStories = grouped[uploaderId]!;
+                      final firstData =
+                          uploaderStories.first.data() as Map<String, dynamic>;
+                      final base64String = firstData['imageBase64'];
 
-                      return GestureDetector(
-                        onTap: () async {
-                          if (user?.uid != null) {
-                            await FirebaseFirestore.instance
-                                .collection('stories')
-                                .doc(storyId)
-                                .update({
-                                  'viewers': FieldValue.arrayUnion([user!.uid]),
-                                })
-                                .catchError((_) => null);
-                          }
-                          if (!context.mounted) return;
+                      return FutureBuilder<DocumentSnapshot>(
+                        future: FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(uploaderId)
+                            .get(),
+                        builder: (context, userSnap) {
+                          final userData =
+                              userSnap.hasData && userSnap.data!.exists
+                              ? userSnap.data!.data() as Map<String, dynamic>
+                              : null;
+                          final displayName =
+                              userData?['name'] ??
+                              userData?['username'] ??
+                              uploaderId.substring(0, 5);
 
-                          showDialog(
-                            context: context,
-                            builder: (context) => Scaffold(
-                              backgroundColor: Colors.black,
-                              appBar: AppBar(
-                                backgroundColor: Colors.black,
-                                elevation: 0,
-                                iconTheme: const IconThemeData(
-                                  color: Colors.white,
-                                ),
-                              ),
-                              body: Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  Center(
-                                    child: Image.memory(
-                                      base64Decode(base64String),
+                          return GestureDetector(
+                            onTap: () async {
+                              if (user?.uid != null) {
+                                for (final doc in uploaderStories) {
+                                  await doc.reference
+                                      .update({
+                                        'viewers': FieldValue.arrayUnion([
+                                          user!.uid,
+                                        ]),
+                                      })
+                                      .catchError((_) => null);
+                                }
+                              }
+                              if (!context.mounted) return;
+
+                              showDialog(
+                                context: context,
+                                builder: (context) => Scaffold(
+                                  backgroundColor: Colors.black,
+                                  appBar: AppBar(
+                                    backgroundColor: Colors.black,
+                                    elevation: 0,
+                                    iconTheme: const IconThemeData(
+                                      color: Colors.white,
                                     ),
                                   ),
-                                  Positioned(
-                                    top: 16,
-                                    left: 16,
-                                    child: FutureBuilder<DocumentSnapshot>(
-                                      future: FirebaseFirestore.instance
-                                          .collection('users')
-                                          .doc(data['uploaderId'])
-                                          .get(),
-                                      builder: (context, userSnap) {
-                                        if (!userSnap.hasData)
-                                          return const SizedBox.shrink();
-                                        final u =
-                                            userSnap.data!.data()
-                                                as Map<String, dynamic>?;
-                                        if (u == null)
-                                          return const SizedBox.shrink();
-                                        final name =
-                                            u['name'] ??
-                                            u['username'] ??
-                                            'User';
-                                        return Row(
-                                          children: [
-                                            CircleAvatar(
-                                              radius: 20,
-                                              backgroundImage:
-                                                  u['profileBase64'] != null
-                                                  ? MemoryImage(
-                                                      base64Decode(
-                                                        u['profileBase64'],
-                                                      ),
-                                                    )
-                                                  : null,
-                                              child: u['profileBase64'] == null
-                                                  ? const Icon(
-                                                      Icons.person,
-                                                      color: Colors.white,
-                                                    )
-                                                  : null,
+                                  body: Stack(
+                                    children: [
+                                      PageView.builder(
+                                        itemCount: uploaderStories.length,
+                                        itemBuilder: (context, pageIndex) {
+                                          final storyDoc =
+                                              uploaderStories[pageIndex];
+                                          final storyData =
+                                              storyDoc.data()
+                                                  as Map<String, dynamic>;
+                                          return Stack(
+                                            fit: StackFit.expand,
+                                            children: [
+                                              Center(
+                                                child: Image.memory(
+                                                  base64Decode(
+                                                    storyData['imageBase64'],
+                                                  ),
+                                                  fit: BoxFit.contain,
+                                                ),
+                                              ),
+                                              Positioned(
+                                                top: 60,
+                                                left: 16,
+                                                child: Row(
+                                                  children: [
+                                                    CircleAvatar(
+                                                      radius: 20,
+                                                      backgroundImage:
+                                                          userData?['profileBase64'] !=
+                                                              null
+                                                          ? MemoryImage(
+                                                              base64Decode(
+                                                                userData!['profileBase64'],
+                                                              ),
+                                                            )
+                                                          : null,
+                                                      child:
+                                                          userData?['profileBase64'] ==
+                                                              null
+                                                          ? const Icon(
+                                                              Icons.person,
+                                                              color:
+                                                                  Colors.white,
+                                                            )
+                                                          : null,
+                                                    ),
+                                                    const SizedBox(width: 10),
+                                                    Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          displayName
+                                                              .toString(),
+                                                          style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 16,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            shadows: [
+                                                              Shadow(
+                                                                blurRadius: 4,
+                                                                color: Colors
+                                                                    .black54,
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        if (uploaderStories
+                                                                .length >
+                                                            1)
+                                                          Text(
+                                                            '${pageIndex + 1} / ${uploaderStories.length}',
+                                                            style:
+                                                                const TextStyle(
+                                                                  color: Colors
+                                                                      .white70,
+                                                                  fontSize: 12,
+                                                                ),
+                                                          ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              width: 80,
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Stack(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(3),
+                                        decoration: const BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              Color(0xFF8B5CF6),
+                                              Color(0xFFF43F5E),
+                                            ],
+                                          ),
+                                        ),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(2),
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Theme.of(
+                                              context,
+                                            ).scaffoldBackgroundColor,
+                                          ),
+                                          child: CircleAvatar(
+                                            radius: 28,
+                                            backgroundImage: MemoryImage(
+                                              base64Decode(base64String),
                                             ),
-                                            const SizedBox(width: 10),
-                                            Text(
-                                              name,
+                                          ),
+                                        ),
+                                      ),
+                                      if (uploaderStories.length > 1)
+                                        Positioned(
+                                          right: 0,
+                                          bottom: 0,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 5,
+                                              vertical: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF8B5CF6),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Text(
+                                              '${uploaderStories.length}',
                                               style: const TextStyle(
                                                 color: Colors.white,
-                                                fontSize: 18,
+                                                fontSize: 10,
                                                 fontWeight: FontWeight.bold,
-                                                shadows: [
-                                                  Shadow(
-                                                    blurRadius: 4,
-                                                    color: Colors.black54,
-                                                  ),
-                                                ],
                                               ),
                                             ),
-                                          ],
-                                        );
-                                      },
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    displayName.toString(),
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall?.color,
                                     ),
                                   ),
                                 ],
@@ -937,50 +1075,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                           );
                         },
-                        child: Container(
-                          width: 80,
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(3),
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Color(0xFF8B5CF6),
-                                      Color(0xFFF43F5E),
-                                    ],
-                                  ),
-                                ),
-                                child: Container(
-                                  padding: const EdgeInsets.all(2),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Theme.of(
-                                      context,
-                                    ).scaffoldBackgroundColor,
-                                  ),
-                                  child: CircleAvatar(
-                                    radius: 28,
-                                    backgroundImage: MemoryImage(
-                                      base64Decode(base64String),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                uploaderId,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                       );
                     },
                   ),

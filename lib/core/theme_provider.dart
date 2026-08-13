@@ -11,12 +11,17 @@ class ThemeNotifier extends Notifier<ThemeData> {
 
   // Modern Violet/Rose App Theme
   static final ThemeData _defaultTheme = ThemeData(
-    primaryColor: const Color(0xFF8B5CF6), // Violet
+    useMaterial3: false,
+    primaryColor: const Color(0xFF8B5CF6),
     scaffoldBackgroundColor: const Color(0xFFFAFAFA),
+    cardColor: const Color(0xFFFFFFFF),
+    dialogBackgroundColor: const Color(0xFFFFFFFF),
     appBarTheme: const AppBarTheme(
       backgroundColor: Colors.white,
+      foregroundColor: Colors.black87,
       elevation: 0,
       iconTheme: IconThemeData(color: Colors.black87),
+      actionsIconTheme: IconThemeData(color: Colors.black87),
       titleTextStyle: TextStyle(
         color: Colors.black87,
         fontSize: 20,
@@ -33,9 +38,13 @@ class ThemeNotifier extends Notifier<ThemeData> {
         elevation: 0,
       ),
     ),
-    colorScheme: ColorScheme.fromSwatch().copyWith(
-      secondary: const Color(0xFFF43F5E), // Rose Accent
-      primary: const Color(0xFF8B5CF6),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(foregroundColor: const Color(0xFF8B5CF6)),
+    ),
+    colorScheme: const ColorScheme.light(
+      primary: Color(0xFF8B5CF6),
+      secondary: Color(0xFFF43F5E),
+      surface: Color(0xFFFAFAFA),
     ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: Colors.white,
@@ -45,16 +54,21 @@ class ThemeNotifier extends Notifier<ThemeData> {
       elevation: 16,
       type: BottomNavigationBarType.fixed,
     ),
-    fontFamily: 'Inter', // Assuming Google Fonts fallback visually
+    textTheme: const TextTheme(bodySmall: TextStyle(color: Colors.black54)),
+    fontFamily: 'Inter',
   );
 
   static final ThemeData _darkTheme = ThemeData.dark().copyWith(
     primaryColor: const Color(0xFF8B5CF6),
     scaffoldBackgroundColor: const Color(0xFF121212),
+    cardColor: const Color(0xFF1E1E1E),
+    dialogBackgroundColor: const Color(0xFF1E1E1E),
     appBarTheme: const AppBarTheme(
       backgroundColor: Color(0xFF1E1E1E),
+      foregroundColor: Colors.white,
       elevation: 0,
       iconTheme: IconThemeData(color: Colors.white),
+      actionsIconTheme: IconThemeData(color: Colors.white),
       titleTextStyle: TextStyle(
         color: Colors.white,
         fontSize: 20,
@@ -64,6 +78,7 @@ class ThemeNotifier extends Notifier<ThemeData> {
     colorScheme: const ColorScheme.dark(
       primary: Color(0xFF8B5CF6),
       secondary: Color(0xFFF43F5E),
+      surface: Color(0xFF1E1E1E),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -73,6 +88,9 @@ class ThemeNotifier extends Notifier<ThemeData> {
         padding: const EdgeInsets.symmetric(vertical: 16),
       ),
     ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(foregroundColor: const Color(0xFF8B5CF6)),
+    ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: Color(0xFF1E1E1E),
       selectedItemColor: Color(0xFF8B5CF6),
@@ -81,6 +99,7 @@ class ThemeNotifier extends Notifier<ThemeData> {
       elevation: 16,
       type: BottomNavigationBarType.fixed,
     ),
+    textTheme: const TextTheme(bodySmall: TextStyle(color: Colors.white54)),
   );
 
   void setLightMode() {
@@ -92,40 +111,28 @@ class ThemeNotifier extends Notifier<ThemeData> {
   }
 
   void setCustomTheme(Color primary, Color secondary, bool isDark) {
-    if (isDark) {
-      state = _darkTheme.copyWith(
-        primaryColor: primary,
-        colorScheme: _darkTheme.colorScheme.copyWith(
-          primary: primary,
-          secondary: secondary,
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: primary,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
+    final base = isDark ? _darkTheme : _defaultTheme;
+    state = base.copyWith(
+      primaryColor: primary,
+      colorScheme: base.colorScheme.copyWith(
+        primary: primary,
+        secondary: secondary,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primary,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
         ),
-      );
-    } else {
-      state = _defaultTheme.copyWith(
-        primaryColor: primary,
-        colorScheme: _defaultTheme.colorScheme.copyWith(
-          primary: primary,
-          secondary: secondary,
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: primary,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-        ),
-      );
-    }
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: primary),
+      ),
+      bottomNavigationBarTheme: base.bottomNavigationBarTheme.copyWith(
+        selectedItemColor: primary,
+      ),
+    );
   }
 }
